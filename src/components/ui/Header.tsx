@@ -1,23 +1,24 @@
-"use client";
+﻿"use client";
 
-import React, { useEffect, useState, useRef } from "react";
-import { useAuthStore } from "@/features/auth/store/authStore";
-import { useSidebarStore } from "@/features/sidebar/store/sidebarStore";
 import {
   Bell,
-  Shield,
   ChevronDown,
-  LogOut,
-  KeyRound,
-  X,
-  Loader2,
   Eye,
   EyeOff,
+  KeyRound,
+  Loader2,
+  LogOut,
   Menu,
+  Shield,
+  X,
 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
+
+import { API_ENDPOINTS } from "@/constants/constants/api";
+import { useAuthStore } from "@/features/auth/store/authStore";
+import { useSidebarStore } from "@/features/sidebar/store/sidebarStore";
 import { apiService } from "@/services/api-service";
-import { API_ENDPOINTS } from "@/constants/api";
 
 export default function Header() {
   const { user, clearAuth } = useAuthStore();
@@ -36,14 +37,15 @@ export default function Header() {
   const [showNewPassword, setShowNewPassword] = useState(false);
 
   useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
+    function handleClickOutside(event: MouseEvent) {
       if (
         dropdownRef.current &&
-        !dropdownRef.current.contains(e.target as Node)
+        !dropdownRef.current.contains(event.target as Node)
       ) {
         setDropdownOpen(false);
       }
     }
+
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
@@ -54,23 +56,26 @@ export default function Header() {
         auth: true,
       });
     } catch {
-      // Tiến hành logout cục bộ dù API có lỗi
+      // Vẫn đăng xuất cục bộ nếu API logout thất bại.
     } finally {
       clearAuth();
       window.location.href = "/login";
     }
   };
 
-  const handleChangePassword = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleChangePassword = async (event: React.FormEvent) => {
+    event.preventDefault();
+
     if (passwordForm.newPassword.length < 6) {
       toast.error("Mật khẩu mới phải có ít nhất 6 ký tự.");
       return;
     }
+
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
       toast.error("Mật khẩu xác nhận không khớp.");
       return;
     }
+
     setPasswordLoading(true);
     try {
       await apiService.patch(
@@ -89,8 +94,9 @@ export default function Header() {
         confirmPassword: "",
       });
     } catch (error: unknown) {
-      const err = error as { message?: string };
-      toast.error(err.message || "Đổi mật khẩu thất bại.");
+      const message =
+        error instanceof Error ? error.message : "Đổi mật khẩu thất bại.";
+      toast.error(message);
     } finally {
       setPasswordLoading(false);
     }
@@ -100,93 +106,84 @@ export default function Header() {
     <>
       <header
         className={`
-          h-14 sm:h-16 fixed right-0 top-0
-          bg-surface-container-lowest border-b border-outline-variant
-          flex items-center justify-between
-          px-3 sm:px-4 md:px-6 lg:px-8
-          z-40 transition-all duration-300
-
-          /* Mobile: full width */
-          w-full
-
-          /* Desktop: trừ sidebar */
+          fixed right-0 top-0 z-40 flex h-14 w-full items-center justify-between
+          border-b border-outline-variant bg-surface-container-lowest
+          px-3 sm:h-16 sm:px-4 md:px-6 lg:px-8
+          transition-all duration-300
           ${isCollapsed ? "lg:w-[calc(100%-72px)]" : "lg:w-[calc(100%-256px)]"}
         `}
       >
-        {/* Left: Toggle */}
-        <div className="flex items-center flex-1 min-w-0">
+        <div className="flex min-w-0 flex-1 items-center">
           <button
+            className="shrink-0 rounded-lg py-2 text-on-surface-variant transition-colors hover:bg-surface-container-low active:scale-95"
             onClick={toggleSidebar}
-            className="py-2 rounded-lg hover:bg-surface-container-low transition-colors text-on-surface-variant active:scale-95 shrink-0"
             title="Menu"
           >
-            <Menu className="w-5 h-5" />
+            <Menu className="h-5 w-5" />
           </button>
         </div>
 
-        {/* Right: Actions */}
-        <div className="flex items-center gap-2 sm:gap-4 md:gap-6 shrink-0">
-          {/* Notifications */}
-          <button className="relative w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center bg-surface-container-low hover:bg-surface-container-high rounded-full transition-colors active:scale-95">
-            <Bell className="w-4 h-4 sm:w-5 sm:h-5 text-on-surface" />
-            <span className="absolute top-1.5 right-2 sm:top-2 sm:right-2.5 w-2 h-2 sm:w-2.5 sm:h-2.5 bg-primary border-2 border-surface-container-lowest rounded-full"></span>
+        <div className="shrink-0 flex items-center gap-2 sm:gap-4 md:gap-6">
+          <button className="relative flex h-9 w-9 items-center justify-center rounded-full bg-surface-container-low transition-colors hover:bg-surface-container-high active:scale-95 sm:h-10 sm:w-10">
+            <Bell className="h-4 w-4 text-on-surface sm:h-5 sm:w-5" />
+            <span className="absolute right-2 top-1.5 h-2 w-2 rounded-full border-2 border-surface-container-lowest bg-primary sm:right-2.5 sm:top-2 sm:h-2.5 sm:w-2.5" />
           </button>
 
-          {/* Divider - ẩn trên mobile */}
-          <div className="hidden md:block w-px h-8 bg-outline-variant"></div>
+          <div className="hidden h-8 w-px bg-outline-variant md:block" />
 
-          {/* User Profile Dropdown */}
           <div className="relative" ref={dropdownRef}>
             <button
-              onClick={() => setDropdownOpen(!dropdownOpen)}
-              className="flex items-center gap-2 sm:gap-3 cursor-pointer group"
+              className="group flex cursor-pointer items-center gap-2 sm:gap-3"
+              onClick={() => setDropdownOpen((value) => !value)}
             >
-              <div className="w-9 h-9 sm:w-10 sm:h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary border border-outline-variant font-headline text-sm sm:text-[15px] font-bold shrink-0">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-outline-variant bg-primary/10 font-headline text-sm font-bold text-primary sm:h-10 sm:w-10 sm:text-[15px]">
                 A
               </div>
-              {/* Thông tin user - ẩn trên mobile */}
-              <div className="hidden md:flex flex-col text-left">
-                <span className="font-sans text-xs font-bold text-on-surface leading-none">
+              <div className="hidden flex-col text-left md:flex">
+                <span className="font-sans text-xs font-bold leading-none text-on-surface">
                   {user?.email || "Tài khoản quản trị"}
                 </span>
-                <span className="font-sans text-[10px] font-medium text-on-surface-variant leading-none mt-1 flex items-center gap-1">
-                  <Shield className="w-3 h-3 text-primary" /> Quản trị viên hệ
+                <span className="mt-1 flex items-center gap-1 font-sans text-[10px] font-medium leading-none text-on-surface-variant">
+                  <Shield className="h-3 w-3 text-primary" /> Quản trị viên hệ
                   thống
                 </span>
               </div>
               <ChevronDown
-                className={`hidden sm:block w-4 h-4 text-on-surface-variant transition-transform ${dropdownOpen ? "rotate-180" : ""}`}
+                className={`hidden h-4 w-4 text-on-surface-variant transition-transform sm:block ${dropdownOpen ? "rotate-180" : ""}`}
               />
             </button>
 
             {dropdownOpen && (
-              <div className="absolute right-0 top-full mt-2 w-52 sm:w-56 bg-surface-container-lowest border border-outline-variant rounded-xl shadow-lg overflow-hidden z-50">
-                {/* Hiện email trên mobile trong dropdown */}
-                <div className="md:hidden px-4 py-3 border-b border-outline-variant">
-                  <p className="font-sans text-xs font-bold text-on-surface truncate">
+              <div className="absolute right-0 top-full z-50 mt-2 w-52 overflow-hidden rounded-xl border border-outline-variant bg-surface-container-lowest shadow-lg sm:w-56">
+                <div className="border-b border-outline-variant px-4 py-3 md:hidden">
+                  <p className="truncate font-sans text-xs font-bold text-on-surface">
                     {user?.email || "Tài khoản quản trị"}
                   </p>
-                  <p className="font-sans text-[10px] text-on-surface-variant mt-0.5">
+                  <p className="mt-0.5 font-sans text-[10px] text-on-surface-variant">
                     Quản trị viên hệ thống
                   </p>
                 </div>
                 <button
+                  className="w-full px-4 py-3 text-left font-sans text-xs font-semibold text-on-surface transition-colors hover:bg-surface-container-low"
                   onClick={() => {
                     setDropdownOpen(false);
                     setPasswordModalOpen(true);
                   }}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-on-surface hover:bg-surface-container-low transition-colors font-sans text-xs font-semibold text-left"
                 >
-                  <KeyRound className="w-4 h-4 text-on-surface-variant" />
-                  Đổi mật khẩu
+                  <span className="flex items-center gap-3">
+                    <KeyRound className="h-4 w-4 text-on-surface-variant" />
+                    Đổi mật khẩu
+                  </span>
                 </button>
                 <div className="h-px bg-outline-variant" />
                 <button
+                  className="w-full px-4 py-3 text-left font-sans text-xs font-semibold text-error transition-colors hover:bg-error/5"
                   onClick={handleLogout}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-error hover:bg-error/5 transition-colors font-sans text-xs font-semibold text-left"
                 >
-                  <LogOut className="w-4 h-4" />
-                  Đăng xuất
+                  <span className="flex items-center gap-3">
+                    <LogOut className="h-4 w-4" />
+                    Đăng xuất
+                  </span>
                 </button>
               </div>
             )}
@@ -194,25 +191,24 @@ export default function Header() {
         </div>
       </header>
 
-      {/* Change Password Modal */}
       {passwordModalOpen && (
-        <div className="fixed inset-0 bg-on-surface/40 backdrop-blur-sm z-[60] flex items-center justify-center p-3 sm:p-4">
-          <div className="bg-surface-container-lowest border border-outline-variant rounded-xl shadow-xl w-full max-w-md overflow-hidden">
-            <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-outline-variant flex items-center justify-between bg-surface-container-low">
-              <h3 className="font-headline text-sm sm:text-md font-bold text-on-surface">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-on-surface/40 p-3 backdrop-blur-sm sm:p-4">
+          <div className="w-full max-w-md overflow-hidden rounded-xl border border-outline-variant bg-surface-container-lowest shadow-xl">
+            <div className="flex items-center justify-between border-b border-outline-variant bg-surface-container-low px-4 py-3 sm:px-6 sm:py-4">
+              <h3 className="font-headline text-sm font-bold text-on-surface sm:text-md">
                 Đổi mật khẩu
               </h3>
               <button
+                className="rounded-lg p-1 text-on-surface-variant transition-colors hover:bg-surface-container-highest"
                 onClick={() => setPasswordModalOpen(false)}
-                className="p-1 rounded-lg text-on-surface-variant hover:bg-surface-container-highest transition-colors"
               >
-                <X className="w-5 h-5" />
+                <X className="h-5 w-5" />
               </button>
             </div>
 
             <form
+              className="flex flex-col gap-4 p-4 text-left sm:p-6"
               onSubmit={handleChangePassword}
-              className="p-4 sm:p-6 flex flex-col gap-4 text-left"
             >
               <div className="flex flex-col gap-1.5">
                 <label className="font-sans text-xs font-bold text-on-surface-variant">
@@ -220,27 +216,27 @@ export default function Header() {
                 </label>
                 <div className="relative">
                   <input
-                    type={showCurrentPassword ? "text" : "password"}
-                    value={passwordForm.currentPassword}
-                    onChange={(e) =>
-                      setPasswordForm((p) => ({
-                        ...p,
-                        currentPassword: e.target.value,
+                    className="w-full rounded-lg border border-outline-variant bg-transparent px-3 py-2.5 pr-10 font-sans text-xs outline-none transition-all focus:border-primary focus:ring-1 focus:ring-primary sm:px-4"
+                    onChange={(event) =>
+                      setPasswordForm((previous) => ({
+                        ...previous,
+                        currentPassword: event.target.value,
                       }))
                     }
-                    className="w-full px-3 sm:px-4 py-2.5 pr-10 rounded-lg border border-outline-variant bg-transparent font-sans text-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
                     placeholder="Nhập mật khẩu hiện tại"
                     required
+                    type={showCurrentPassword ? "text" : "password"}
+                    value={passwordForm.currentPassword}
                   />
                   <button
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-on-surface-variant"
+                    onClick={() => setShowCurrentPassword((value) => !value)}
                     type="button"
-                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant p-1"
                   >
                     {showCurrentPassword ? (
-                      <EyeOff className="w-4 h-4" />
+                      <EyeOff className="h-4 w-4" />
                     ) : (
-                      <Eye className="w-4 h-4" />
+                      <Eye className="h-4 w-4" />
                     )}
                   </button>
                 </div>
@@ -252,27 +248,27 @@ export default function Header() {
                 </label>
                 <div className="relative">
                   <input
-                    type={showNewPassword ? "text" : "password"}
-                    value={passwordForm.newPassword}
-                    onChange={(e) =>
-                      setPasswordForm((p) => ({
-                        ...p,
-                        newPassword: e.target.value,
+                    className="w-full rounded-lg border border-outline-variant bg-transparent px-3 py-2.5 pr-10 font-sans text-xs outline-none transition-all focus:border-primary focus:ring-1 focus:ring-primary sm:px-4"
+                    onChange={(event) =>
+                      setPasswordForm((previous) => ({
+                        ...previous,
+                        newPassword: event.target.value,
                       }))
                     }
-                    className="w-full px-3 sm:px-4 py-2.5 pr-10 rounded-lg border border-outline-variant bg-transparent font-sans text-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
                     placeholder="Nhập mật khẩu mới (tối thiểu 6 ký tự)"
                     required
+                    type={showNewPassword ? "text" : "password"}
+                    value={passwordForm.newPassword}
                   />
                   <button
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-on-surface-variant"
+                    onClick={() => setShowNewPassword((value) => !value)}
                     type="button"
-                    onClick={() => setShowNewPassword(!showNewPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant p-1"
                   >
                     {showNewPassword ? (
-                      <EyeOff className="w-4 h-4" />
+                      <EyeOff className="h-4 w-4" />
                     ) : (
-                      <Eye className="w-4 h-4" />
+                      <Eye className="h-4 w-4" />
                     )}
                   </button>
                 </div>
@@ -283,35 +279,35 @@ export default function Header() {
                   Xác nhận mật khẩu mới <span className="text-error">*</span>
                 </label>
                 <input
-                  type="password"
-                  value={passwordForm.confirmPassword}
-                  onChange={(e) =>
-                    setPasswordForm((p) => ({
-                      ...p,
-                      confirmPassword: e.target.value,
+                  className="w-full rounded-lg border border-outline-variant bg-transparent px-3 py-2.5 font-sans text-xs outline-none transition-all focus:border-primary focus:ring-1 focus:ring-primary sm:px-4"
+                  onChange={(event) =>
+                    setPasswordForm((previous) => ({
+                      ...previous,
+                      confirmPassword: event.target.value,
                     }))
                   }
-                  className="w-full px-3 sm:px-4 py-2.5 rounded-lg border border-outline-variant bg-transparent font-sans text-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
                   placeholder="Nhập lại mật khẩu mới"
                   required
+                  type="password"
+                  value={passwordForm.confirmPassword}
                 />
               </div>
 
-              <div className="flex justify-end gap-2 sm:gap-3 mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-outline-variant">
+              <div className="mt-3 flex justify-end gap-2 border-t border-outline-variant pt-3 sm:mt-4 sm:gap-3 sm:pt-4">
                 <button
-                  type="button"
+                  className="rounded-lg border border-outline-variant px-3 py-2.5 font-sans text-xs font-semibold transition-colors hover:bg-surface-container-low sm:px-4"
                   onClick={() => setPasswordModalOpen(false)}
-                  className="px-3 sm:px-4 py-2.5 rounded-lg border border-outline-variant hover:bg-surface-container-low font-sans text-xs font-semibold transition-colors"
+                  type="button"
                 >
                   Hủy bỏ
                 </button>
                 <button
-                  type="submit"
+                  className="flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2.5 font-sans text-xs font-semibold text-white shadow-sm transition-all hover:bg-primary-container active:scale-95 sm:px-5"
                   disabled={passwordLoading}
-                  className="px-4 sm:px-5 py-2.5 bg-primary hover:bg-primary-container text-white rounded-lg font-sans text-xs font-semibold active:scale-95 transition-all flex items-center gap-1.5 shadow-sm"
+                  type="submit"
                 >
                   {passwordLoading ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
                     "Đổi mật khẩu"
                   )}

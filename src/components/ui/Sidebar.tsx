@@ -1,29 +1,27 @@
-"use client";
+﻿"use client";
 
-import React from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useAuthStore } from "@/features/auth/store/authStore";
-import { useSidebarStore } from "@/features/sidebar/store/sidebarStore";
 import {
-  LayoutDashboard,
-  Users,
   CheckSquare,
   FolderTree,
-  ShieldAlert,
-  HelpCircle,
+  LayoutDashboard,
   LogOut,
+  Users,
   X,
 } from "lucide-react";
+
+import { API_ENDPOINTS } from "@/constants/constants/api";
+import { useAuthStore } from "@/features/auth/store/authStore";
+import { useSidebarStore } from "@/features/sidebar/store/sidebarStore";
 import { apiService } from "@/services/api-service";
-import { API_ENDPOINTS } from "@/constants/api";
-import Image from "next/image";
 
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const { clearAuth } = useAuthStore();
-  const { isCollapsed, toggle, close } = useSidebarStore();
+  const { isCollapsed, close } = useSidebarStore();
 
   const handleLogout = async () => {
     try {
@@ -31,7 +29,7 @@ export default function Sidebar() {
         auth: true,
       });
     } catch {
-      // Tiến hành logout cục bộ dù API có lỗi
+      // Vẫn đăng xuất cục bộ nếu API logout thất bại.
     } finally {
       clearAuth();
       router.push("/login");
@@ -46,7 +44,6 @@ export default function Sidebar() {
   ];
 
   const handleNavClick = () => {
-    // Trên mobile, đóng sidebar khi chọn menu
     if (typeof window !== "undefined" && window.innerWidth < 1024) {
       close();
     }
@@ -54,70 +51,60 @@ export default function Sidebar() {
 
   return (
     <>
-      {/* Overlay cho mobile khi sidebar mở */}
       <div
-        className={`fixed inset-0 bg-on-surface/40 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300 ${
+        className={`fixed inset-0 z-40 bg-on-surface/40 backdrop-blur-sm transition-opacity duration-300 lg:hidden ${
           !isCollapsed
-            ? "opacity-100 pointer-events-auto"
-            : "opacity-0 pointer-events-none"
+            ? "pointer-events-auto opacity-100"
+            : "pointer-events-none opacity-0"
         }`}
         onClick={close}
       />
 
       <aside
         className={`
-          h-screen fixed left-0 top-0 overflow-y-auto
-          bg-surface-container-low border-r border-outline-variant
-          flex flex-col gap-4 py-6 z-50
+          fixed left-0 top-0 z-50 flex h-screen flex-col gap-4 overflow-y-auto
+          border-r border-outline-variant bg-surface-container-low py-4
           transition-all duration-300
-
-          /* Mobile: full overlay, ẩn mặc định */
           w-[280px] -translate-x-full
-
-          /* Mobile: mở qua state */
           ${!isCollapsed ? "translate-x-0" : ""}
-
-          /* Desktop: luôn hiện, thu gọn/mở rộng */
           lg:translate-x-0
           ${isCollapsed ? "lg:w-[72px]" : "lg:w-64"}
         `}
       >
-        {/* Brand Logo + Close trên mobile */}
         <div
-          className={`mb-6 flex items-center pb-6 border-b border-outline-variant ${isCollapsed ? "lg:px-4 lg:justify-center px-6 justify-between" : "px-6 justify-between"}`}
+          className={`mb-2 flex items-center justify-between border-b border-outline-variant pb-2 ${
+            isCollapsed ? "px-6 lg:justify-center lg:px-4" : "px-6"
+          }`}
         >
           <Link
+            className="flex min-w-0 items-center gap-3"
             href="/"
-            className="flex items-center gap-3 min-w-0"
             onClick={handleNavClick}
           >
             <Image
-              src="/logo.png"
               alt="FUSE Logo"
-              width={40}
-              height={40}
               className="shrink-0 object-contain"
+              height={40}
+              src="/logo.png"
+              width={40}
             />
-            {/* Ẩn text khi collapsed trên desktop, luôn hiện trên mobile */}
             <div className={isCollapsed ? "lg:hidden" : ""}>
               <h1 className="font-headline text-md font-extrabold text-primary">
                 FUSE ADMIN
               </h1>
-              <p className="font-sans text-[11px] font-medium text-on-surface-variant leading-none mt-0.5">
+              <p className="mt-0.5 font-sans text-[11px] font-medium leading-none text-on-surface-variant">
                 Quản trị hệ thống
               </p>
             </div>
           </Link>
-          {/* Nút đóng chỉ hiện trên mobile */}
           <button
+            className="rounded-lg p-1.5 text-on-surface-variant transition-colors hover:bg-surface-container-highest lg:hidden"
             onClick={close}
-            className="p-1.5 rounded-lg hover:bg-surface-container-highest transition-colors text-on-surface-variant lg:hidden"
           >
-            <X className="w-5 h-5" />
+            <X className="h-5 w-5" />
           </button>
         </div>
 
-        {/* Navigation Menu */}
         <nav className="flex-1">
           <ul className="flex flex-col gap-1">
             {navItems.map((item) => {
@@ -127,22 +114,21 @@ export default function Sidebar() {
               return (
                 <li key={item.href}>
                   <Link
+                    className={`
+                      flex items-center gap-4 px-6 py-3 transition-all duration-150 active:scale-95
+                      ${isCollapsed ? "lg:justify-center lg:px-0" : ""}
+                      ${
+                        isActive
+                          ? "border-r-4 border-primary bg-primary/10 font-bold text-primary"
+                          : "text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface"
+                      }
+                    `}
                     href={item.href}
                     onClick={handleNavClick}
                     title={isCollapsed ? item.label : undefined}
-                    className={`
-                      flex items-center gap-4 py-3 transition-all duration-150 active:scale-95
-                      px-6
-                      ${isCollapsed ? "lg:px-0 lg:justify-center" : ""}
-                      ${
-                        isActive
-                          ? "text-primary font-bold border-r-4 border-primary bg-primary/10"
-                          : "text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest"
-                      }
-                    `}
                   >
                     <Icon
-                      className={`w-5 h-5 shrink-0 ${isActive ? "text-primary" : "text-on-surface-variant"}`}
+                      className={`h-5 w-5 shrink-0 ${isActive ? "text-primary" : "text-on-surface-variant"}`}
                     />
                     <span
                       className={`font-sans text-xs font-semibold ${isCollapsed ? "lg:hidden" : ""}`}
@@ -156,42 +142,19 @@ export default function Sidebar() {
           </ul>
         </nav>
 
-        {/* Bottom Actions */}
         <div className="mt-auto border-t border-outline-variant pt-4">
-          <a
-            href="#"
-            title={isCollapsed ? "Nhật ký bảo mật" : undefined}
-            className={`flex items-center gap-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest transition-all duration-150 px-6 ${isCollapsed ? "lg:justify-center lg:px-0" : ""}`}
-          >
-            <ShieldAlert className="w-5 h-5 text-on-surface-variant shrink-0" />
-            <span
-              className={`font-sans text-xs font-semibold ${isCollapsed ? "lg:hidden" : ""}`}
-            >
-              Nhật ký bảo mật
-            </span>
-          </a>
-          <a
-            href="#"
-            title={isCollapsed ? "Hỗ trợ" : undefined}
-            className={`flex items-center gap-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest transition-all duration-150 px-6 ${isCollapsed ? "lg:justify-center lg:px-0" : ""}`}
-          >
-            <HelpCircle className="w-5 h-5 text-on-surface-variant shrink-0" />
-            <span
-              className={`font-sans text-xs font-semibold ${isCollapsed ? "lg:hidden" : ""}`}
-            >
-              Hỗ trợ
-            </span>
-          </a>
           <button
+            className={`w-full px-6 py-3 text-left text-error transition-all duration-150 hover:bg-error-container/10 active:scale-95 ${isCollapsed ? "lg:justify-center lg:px-0" : ""}`}
             onClick={handleLogout}
             title={isCollapsed ? "Đăng xuất" : undefined}
-            className={`w-full flex items-center gap-4 py-3 text-error hover:bg-error-container/10 transition-all duration-150 text-left active:scale-95 px-6 ${isCollapsed ? "lg:justify-center lg:px-0" : ""}`}
           >
-            <LogOut className="w-5 h-5 text-error shrink-0" />
-            <span
-              className={`font-sans text-xs font-semibold ${isCollapsed ? "lg:hidden" : ""}`}
-            >
-              Đăng xuất
+            <span className="flex items-center gap-4">
+              <LogOut className="h-5 w-5 shrink-0 text-error" />
+              <span
+                className={`font-sans text-xs font-semibold ${isCollapsed ? "lg:hidden" : ""}`}
+              >
+                Đăng xuất
+              </span>
             </span>
           </button>
         </div>

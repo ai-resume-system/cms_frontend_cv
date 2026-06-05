@@ -1,7 +1,7 @@
 export enum EJobStatus {
-  Pending = "pending",
-  Open = "open",
-  Closed = "closed",
-  Rejected = "rejected",
-  Expired = "expired",
+  PENDING = "pending",
+  OPEN = "open",
+  CLOSED = "closed",
+  REJECTED = "rejected",
+  EXPIRED = "expired",
 }

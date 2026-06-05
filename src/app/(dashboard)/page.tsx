@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useAuthStore } from "@/features/auth/store/authStore";
 import { apiService } from "@/services/api-service";
-import { API_ENDPOINTS } from "@/constants/api";
+import { API_ENDPOINTS } from "@/constants/constants/api";
 import {
   Users as UsersIcon,
   Briefcase,
@@ -34,7 +34,7 @@ export default function DashboardPage() {
         year: "numeric",
         month: "long",
         day: "numeric",
-      })
+      }),
     );
   }, []);
 
@@ -52,7 +52,9 @@ export default function DashboardPage() {
         }>(`${API_ENDPOINTS.JOBS.LIST_ADMIN}?page=1&limit=1`, { auth: true }),
       ]);
 
-      const users = usersRes as unknown as { pagination: { totalItems: number } };
+      const users = usersRes as unknown as {
+        pagination: { totalItems: number };
+      };
       const jobs = jobsRes as unknown as { pagination: { totalItems: number } };
 
       setTotalUsers(users.pagination?.totalItems ?? 0);
@@ -108,7 +110,8 @@ export default function DashboardPage() {
       action: "Khóa tài khoản vi phạm spam",
       module: "Bảo mật",
       status: "Đã đóng",
-      statusColor: "bg-on-surface-variant/10 text-on-surface-variant border border-outline-variant",
+      statusColor:
+        "bg-on-surface-variant/10 text-on-surface-variant border border-outline-variant",
     },
   ];
 
@@ -116,10 +119,15 @@ export default function DashboardPage() {
     <div className="flex flex-col gap-4 sm:gap-6">
       {/* Header Section */}
       <section className="flex flex-col gap-1.5 text-left">
-        <h2 className="font-headline text-xl sm:text-2xl font-bold text-on-surface">Tổng quan hệ thống</h2>
+        <h2 className="font-headline text-xl sm:text-2xl font-bold text-on-surface">
+          Tổng quan hệ thống
+        </h2>
         <p className="font-sans text-xs text-on-surface-variant">
-          Chào mừng trở lại, <span className="font-bold text-primary">{user?.email}</span>.{" "}
-          {currentTime ? `Hôm nay là ${currentTime}.` : "Dưới đây là phân tích hiệu suất mới nhất cho nền tảng FUSE."}
+          Chào mừng trở lại,{" "}
+          <span className="font-bold text-primary">{user?.email}</span>.{" "}
+          {currentTime
+            ? `Hôm nay là ${currentTime}.`
+            : "Dưới đây là phân tích hiệu suất mới nhất cho nền tảng FUSE."}
         </p>
       </section>
 
@@ -133,7 +141,9 @@ export default function DashboardPage() {
             </div>
           </div>
           <div>
-            <p className="font-sans text-[10px] sm:text-xs font-semibold text-on-surface-variant uppercase tracking-wider">Tổng người dùng</p>
+            <p className="font-sans text-[10px] sm:text-xs font-semibold text-on-surface-variant uppercase tracking-wider">
+              Tổng người dùng
+            </p>
             {statsLoading ? (
               <div className="mt-2">
                 <Loader2 className="w-5 h-5 text-primary animate-spin" />
@@ -154,7 +164,9 @@ export default function DashboardPage() {
             </div>
           </div>
           <div>
-            <p className="font-sans text-[10px] sm:text-xs font-semibold text-on-surface-variant uppercase tracking-wider">Tin tuyển dụng</p>
+            <p className="font-sans text-[10px] sm:text-xs font-semibold text-on-surface-variant uppercase tracking-wider">
+              Tin tuyển dụng
+            </p>
             {statsLoading ? (
               <div className="mt-2">
                 <Loader2 className="w-5 h-5 text-primary animate-spin" />
@@ -206,10 +218,16 @@ export default function DashboardPage() {
         {/* Chart Area */}
         <div className="lg:col-span-8 bg-surface-container-lowest border border-outline-variant rounded-xl p-4 sm:p-6 flex flex-col gap-4 sm:gap-6 shadow-sm">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-            <h3 className="font-headline text-base sm:text-lg font-bold text-on-surface">Xu hướng tăng trưởng người dùng</h3>
+            <h3 className="font-headline text-base sm:text-lg font-bold text-on-surface">
+              Xu hướng tăng trưởng người dùng
+            </h3>
             <div className="flex bg-surface-container-low rounded-lg p-1">
-              <button className="px-2 sm:px-3 py-1 text-[10px] sm:text-xs font-bold bg-white rounded shadow-sm text-primary">7 ngày</button>
-              <button className="px-2 sm:px-3 py-1 text-[10px] sm:text-xs font-semibold text-on-surface-variant hover:text-on-surface">30 ngày</button>
+              <button className="px-2 sm:px-3 py-1 text-[10px] sm:text-xs font-bold bg-white rounded shadow-sm text-primary">
+                7 ngày
+              </button>
+              <button className="px-2 sm:px-3 py-1 text-[10px] sm:text-xs font-semibold text-on-surface-variant hover:text-on-surface">
+                30 ngày
+              </button>
             </div>
           </div>
 
@@ -248,7 +266,9 @@ export default function DashboardPage() {
         {/* Recent Activity */}
         <div className="lg:col-span-4 bg-surface-container-lowest border border-outline-variant rounded-xl p-4 sm:p-6 flex flex-col gap-4 sm:gap-6 shadow-sm">
           <div className="flex justify-between items-center">
-            <h3 className="font-headline text-base sm:text-lg font-bold text-on-surface">Hoạt động gần đây</h3>
+            <h3 className="font-headline text-base sm:text-lg font-bold text-on-surface">
+              Hoạt động gần đây
+            </h3>
             <MoreVertical className="w-5 h-5 text-on-surface-variant cursor-pointer" />
           </div>
           <div className="flex flex-col gap-4 sm:gap-5">
@@ -257,9 +277,15 @@ export default function DashboardPage() {
                 <UserPlus className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
               <div className="flex-1 text-left min-w-0">
-                <p className="font-sans text-xs font-bold text-on-surface">Người dùng mới đăng ký</p>
-                <p className="font-sans text-xs text-on-surface-variant mt-0.5 truncate">Nguyễn Văn An vừa tham gia FUSE.</p>
-                <p className="font-sans text-[10px] text-outline mt-1.5">2 phút trước</p>
+                <p className="font-sans text-xs font-bold text-on-surface">
+                  Người dùng mới đăng ký
+                </p>
+                <p className="font-sans text-xs text-on-surface-variant mt-0.5 truncate">
+                  Nguyễn Văn An vừa tham gia FUSE.
+                </p>
+                <p className="font-sans text-[10px] text-outline mt-1.5">
+                  2 phút trước
+                </p>
               </div>
             </div>
             <div className="flex gap-3 sm:gap-4 items-start">
@@ -267,9 +293,15 @@ export default function DashboardPage() {
                 <FilePlus className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
               <div className="flex-1 text-left min-w-0">
-                <p className="font-sans text-xs font-bold text-on-surface">Việc làm mới đăng tuyển</p>
-                <p className="font-sans text-xs text-on-surface-variant mt-0.5 truncate">Tuyển dụng Senior AI Engineer tại VNG.</p>
-                <p className="font-sans text-[10px] text-outline mt-1.5">15 phút trước</p>
+                <p className="font-sans text-xs font-bold text-on-surface">
+                  Việc làm mới đăng tuyển
+                </p>
+                <p className="font-sans text-xs text-on-surface-variant mt-0.5 truncate">
+                  Tuyển dụng Senior AI Engineer tại VNG.
+                </p>
+                <p className="font-sans text-[10px] text-outline mt-1.5">
+                  15 phút trước
+                </p>
               </div>
             </div>
             <div className="flex gap-3 sm:gap-4 items-start">
@@ -277,9 +309,15 @@ export default function DashboardPage() {
                 <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
               <div className="flex-1 text-left min-w-0">
-                <p className="font-sans text-xs font-bold text-on-surface">Cảnh báo bảo mật</p>
-                <p className="font-sans text-xs text-on-surface-variant mt-0.5 truncate">Phát hiện đăng nhập bất thường từ IP lạ.</p>
-                <p className="font-sans text-[10px] text-outline mt-1.5">1 giờ trước</p>
+                <p className="font-sans text-xs font-bold text-on-surface">
+                  Cảnh báo bảo mật
+                </p>
+                <p className="font-sans text-xs text-on-surface-variant mt-0.5 truncate">
+                  Phát hiện đăng nhập bất thường từ IP lạ.
+                </p>
+                <p className="font-sans text-[10px] text-outline mt-1.5">
+                  1 giờ trước
+                </p>
               </div>
             </div>
           </div>
@@ -292,7 +330,9 @@ export default function DashboardPage() {
       {/* System Activity Table */}
       <section className="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-sm">
         <div className="p-4 sm:p-6 border-b border-outline-variant flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-          <h3 className="font-headline text-base sm:text-lg font-bold text-on-surface">Nhật ký hệ thống chi tiết</h3>
+          <h3 className="font-headline text-base sm:text-lg font-bold text-on-surface">
+            Nhật ký hệ thống chi tiết
+          </h3>
           <button className="flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-primary text-white rounded-lg font-sans text-xs font-semibold hover:bg-primary-container active:scale-95 transition-all shadow-sm">
             <Download className="w-4 h-4" />
             Xuất báo cáo
@@ -302,27 +342,50 @@ export default function DashboardPage() {
           <table className="w-full text-left border-collapse min-w-[600px]">
             <thead>
               <tr className="bg-surface-container-low">
-                <th className="px-3 sm:px-6 py-3 sm:py-4 font-sans text-[10px] sm:text-xs font-bold text-on-surface-variant uppercase tracking-wider">Thời gian</th>
-                <th className="px-3 sm:px-6 py-3 sm:py-4 font-sans text-[10px] sm:text-xs font-bold text-on-surface-variant uppercase tracking-wider">Người thực hiện</th>
-                <th className="px-3 sm:px-6 py-3 sm:py-4 font-sans text-[10px] sm:text-xs font-bold text-on-surface-variant uppercase tracking-wider">Hành động</th>
-                <th className="px-3 sm:px-6 py-3 sm:py-4 font-sans text-[10px] sm:text-xs font-bold text-on-surface-variant uppercase tracking-wider">Mô-đun</th>
-                <th className="px-3 sm:px-6 py-3 sm:py-4 font-sans text-[10px] sm:text-xs font-bold text-on-surface-variant uppercase tracking-wider">Trạng thái</th>
+                <th className="px-3 sm:px-6 py-3 sm:py-4 font-sans text-[10px] sm:text-xs font-bold text-on-surface-variant uppercase tracking-wider">
+                  Thời gian
+                </th>
+                <th className="px-3 sm:px-6 py-3 sm:py-4 font-sans text-[10px] sm:text-xs font-bold text-on-surface-variant uppercase tracking-wider">
+                  Người thực hiện
+                </th>
+                <th className="px-3 sm:px-6 py-3 sm:py-4 font-sans text-[10px] sm:text-xs font-bold text-on-surface-variant uppercase tracking-wider">
+                  Hành động
+                </th>
+                <th className="px-3 sm:px-6 py-3 sm:py-4 font-sans text-[10px] sm:text-xs font-bold text-on-surface-variant uppercase tracking-wider">
+                  Mô-đun
+                </th>
+                <th className="px-3 sm:px-6 py-3 sm:py-4 font-sans text-[10px] sm:text-xs font-bold text-on-surface-variant uppercase tracking-wider">
+                  Trạng thái
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-outline-variant">
               {logs.map((log, index) => (
-                <tr key={index} className="hover:bg-surface-container-low transition-colors duration-150">
-                  <td className="px-3 sm:px-6 py-3 sm:py-4 font-sans text-xs font-semibold text-on-surface whitespace-nowrap">{log.time}</td>
+                <tr
+                  key={index}
+                  className="hover:bg-surface-container-low transition-colors duration-150"
+                >
+                  <td className="px-3 sm:px-6 py-3 sm:py-4 font-sans text-xs font-semibold text-on-surface whitespace-nowrap">
+                    {log.time}
+                  </td>
                   <td className="px-3 sm:px-6 py-3 sm:py-4 flex items-center gap-2 sm:gap-3">
                     <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-primary/10 flex items-center justify-center font-bold text-primary text-[10px] sm:text-xs shrink-0">
                       {log.userInit}
                     </div>
-                    <span className="font-sans text-xs font-bold text-on-surface">{log.userName}</span>
+                    <span className="font-sans text-xs font-bold text-on-surface">
+                      {log.userName}
+                    </span>
                   </td>
-                  <td className="px-3 sm:px-6 py-3 sm:py-4 font-sans text-xs text-on-surface">{log.action}</td>
-                  <td className="px-3 sm:px-6 py-3 sm:py-4 font-sans text-xs text-on-surface-variant">{log.module}</td>
+                  <td className="px-3 sm:px-6 py-3 sm:py-4 font-sans text-xs text-on-surface">
+                    {log.action}
+                  </td>
+                  <td className="px-3 sm:px-6 py-3 sm:py-4 font-sans text-xs text-on-surface-variant">
+                    {log.module}
+                  </td>
                   <td className="px-3 sm:px-6 py-3 sm:py-4">
-                    <span className={`px-2 sm:px-2.5 py-1 text-[10px] font-bold uppercase rounded-md whitespace-nowrap ${log.statusColor}`}>
+                    <span
+                      className={`px-2 sm:px-2.5 py-1 text-[10px] font-bold uppercase rounded-md whitespace-nowrap ${log.statusColor}`}
+                    >
                       {log.status}
                     </span>
                   </td>

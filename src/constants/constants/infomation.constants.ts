@@ -1,4 +1,4 @@
-export const INFOMATION_COMPANY = {
+﻿export const INFOMATION_COMPANY = {
   COMPANY_NAME: "Fuse",
   COPYRIGHT_YEAR: 2026,
   PHONE: "0869295732",

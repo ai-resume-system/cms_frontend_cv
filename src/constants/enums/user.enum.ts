@@ -1,11 +1,17 @@
+// ─────────────────────────────────────────
+// ROLE
+// ─────────────────────────────────────────
 export enum EUserRole {
-  Admin = "admin",
-  JobSeeker = "job_seeker",
-  Recruiter = "recruiter",
+  ADMIN = "admin",
+  JOB_SEEKER = "job_seeker",
+  RECRUITER = "recruiter",
 }
 
+// ─────────────────────────────────────────
+// USER STATUS
+// ─────────────────────────────────────────
 export enum EUserStatus {
-  Active = "active",
-  Unverified = "unverified",
-  Locked = "locked",
+  ACTIVE = "active",
+  UNVERIFIED = "unverified",
+  LOCKED = "locked",
 }

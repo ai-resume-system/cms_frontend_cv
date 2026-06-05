@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { apiService } from "@/services/api-service";
-import { API_ENDPOINTS } from "@/constants/api";
+import { API_ENDPOINTS } from "@/constants/constants/api";
 import { Job } from "@/types/job";
 import { EJobStatus } from "@/constants/enums/job.enum";
 import { toast } from "react-toastify";
@@ -31,22 +31,52 @@ import {
 const LIMIT_OPTIONS = [10, 15, 20, 50, 100] as const;
 
 type SortField = "title" | "createdAt" | "salaryMin" | "location" | "status";
-type SortOrder = "asc" | "desc";
+type SortOrder = "ASC" | "DESC";
 
 const getStatusConfig = (status: EJobStatus) => {
   switch (status) {
-    case EJobStatus.Pending:
-      return { label: "Chờ duyệt", dotClass: "bg-yellow-500", textClass: "text-yellow-600", bgClass: "bg-yellow-50 border-yellow-200" };
-    case EJobStatus.Open:
-      return { label: "Đang tuyển", dotClass: "bg-[#16a34a]", textClass: "text-[#16a34a]", bgClass: "bg-green-50 border-green-200" };
-    case EJobStatus.Closed:
-      return { label: "Đã đóng", dotClass: "bg-outline", textClass: "text-on-surface-variant", bgClass: "bg-surface-container-low border-outline-variant" };
-    case EJobStatus.Rejected:
-      return { label: "Từ chối", dotClass: "bg-error", textClass: "text-error", bgClass: "bg-red-50 border-red-200" };
-    case EJobStatus.Expired:
-      return { label: "Hết hạn", dotClass: "bg-orange-500", textClass: "text-orange-600", bgClass: "bg-orange-50 border-orange-200" };
+    case EJobStatus.PENDING:
+      return {
+        label: "Chờ duyệt",
+        dotClass: "bg-yellow-500",
+        textClass: "text-yellow-600",
+        bgClass: "bg-yellow-50 border-yellow-200",
+      };
+    case EJobStatus.OPEN:
+      return {
+        label: "Đang tuyển",
+        dotClass: "bg-[#16a34a]",
+        textClass: "text-[#16a34a]",
+        bgClass: "bg-green-50 border-green-200",
+      };
+    case EJobStatus.CLOSED:
+      return {
+        label: "Đã đóng",
+        dotClass: "bg-outline",
+        textClass: "text-on-surface-variant",
+        bgClass: "bg-surface-container-low border-outline-variant",
+      };
+    case EJobStatus.REJECTED:
+      return {
+        label: "Từ chối",
+        dotClass: "bg-error",
+        textClass: "text-error",
+        bgClass: "bg-red-50 border-red-200",
+      };
+    case EJobStatus.EXPIRED:
+      return {
+        label: "Hết hạn",
+        dotClass: "bg-orange-500",
+        textClass: "text-orange-600",
+        bgClass: "bg-orange-50 border-orange-200",
+      };
     default:
-      return { label: status, dotClass: "bg-outline", textClass: "text-on-surface-variant", bgClass: "bg-surface-container-low border-outline-variant" };
+      return {
+        label: status,
+        dotClass: "bg-outline",
+        textClass: "text-on-surface-variant",
+        bgClass: "bg-surface-container-low border-outline-variant",
+      };
   }
 };
 
@@ -60,11 +90,11 @@ export default function JobModerationPage() {
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [locationFilter, setLocationFilter] = useState<string>("");
   const [sortField, setSortField] = useState<SortField>("createdAt");
-  const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
+  const [sortOrder, setSortOrder] = useState<SortOrder>("DESC");
   const [isLoading, setIsLoading] = useState(false);
 
   // State cho Modal từ chối
-  const [isOpenRejectModal, setIsOpenRejectModal] = useState(false);
+  const [isOPENRejectModal, setIsOPENRejectModal] = useState(false);
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState("");
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -126,19 +156,22 @@ export default function JobModerationPage() {
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
-      setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
+      setSortOrder((prev) => (prev === "ASC" ? "DESC" : "ASC"));
     } else {
       setSortField(field);
-      setSortOrder("asc");
+      setSortOrder("ASC");
     }
     setPage(1);
   };
 
   const renderSortIcon = (field: SortField) => {
-    if (sortField !== field) return <ArrowUpDown className="w-3 h-3 opacity-40" />;
-    return sortOrder === "asc"
-      ? <ArrowUp className="w-3 h-3 text-primary" />
-      : <ArrowDown className="w-3 h-3 text-primary" />;
+    if (sortField !== field)
+      return <ArrowUpDown className="w-3 h-3 opacity-40" />;
+    return sortOrder === "ASC" ? (
+      <ArrowUp className="w-3 h-3 text-primary" />
+    ) : (
+      <ArrowDown className="w-3 h-3 text-primary" />
+    );
   };
 
   const handleApprove = async (jobId: string) => {
@@ -154,7 +187,9 @@ export default function JobModerationPage() {
       );
       toast.success("Duyệt tin tuyển dụng thành công!");
       setJobs((prev) =>
-        prev.map((j) => (j.id === jobId ? { ...j, status: EJobStatus.Open } : j))
+        prev.map((j) =>
+          j.id === jobId ? { ...j, status: EJobStatus.OPEN } : j,
+        ),
       );
     } catch (error: unknown) {
       const err = error as { message?: string };
@@ -164,16 +199,16 @@ export default function JobModerationPage() {
     }
   };
 
-  const handleOpenRejectModal = (jobId: string) => {
+  const handleOPENRejectModal = (jobId: string) => {
     setSelectedJobId(jobId);
     setRejectReason("");
-    setIsOpenRejectModal(true);
+    setIsOPENRejectModal(true);
   };
 
   const handleCloseRejectModal = () => {
     setSelectedJobId(null);
     setRejectReason("");
-    setIsOpenRejectModal(false);
+    setIsOPENRejectModal(false);
   };
 
   const handleRejectSubmit = async (e: React.FormEvent) => {
@@ -193,7 +228,9 @@ export default function JobModerationPage() {
       );
       toast.success("Từ chối tin tuyển dụng thành công!");
       setJobs((prev) =>
-        prev.map((j) => (j.id === selectedJobId ? { ...j, status: EJobStatus.Rejected } : j))
+        prev.map((j) =>
+          j.id === selectedJobId ? { ...j, status: EJobStatus.REJECTED } : j,
+        ),
       );
       handleCloseRejectModal();
     } catch (error: unknown) {
@@ -219,7 +256,7 @@ export default function JobModerationPage() {
     }
   };
 
-  const canModerate = (status: EJobStatus) => status === EJobStatus.Pending;
+  const canModerate = (status: EJobStatus) => status === EJobStatus.PENDING;
 
   return (
     <div className="flex flex-col gap-4 sm:gap-6">
@@ -267,15 +304,18 @@ export default function JobModerationPage() {
             <div className="flex gap-2 w-full sm:w-auto flex-wrap sm:flex-nowrap">
               <select
                 value={statusFilter}
-                onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+                onChange={(e) => {
+                  setStatusFilter(e.target.value);
+                  setPage(1);
+                }}
                 className="flex-1 sm:flex-none sm:w-40 px-3 py-2.5 rounded-lg border border-outline-variant bg-surface-container-lowest font-sans text-xs font-semibold focus:border-primary outline-none"
               >
                 <option value="">Tất cả trạng thái</option>
-                <option value={EJobStatus.Pending}>Chờ duyệt</option>
-                <option value={EJobStatus.Open}>Đang tuyển</option>
-                <option value={EJobStatus.Closed}>Đã đóng</option>
-                <option value={EJobStatus.Rejected}>Từ chối</option>
-                <option value={EJobStatus.Expired}>Hết hạn</option>
+                <option value={EJobStatus.PENDING}>Chờ duyệt</option>
+                <option value={EJobStatus.OPEN}>Đang tuyển</option>
+                <option value={EJobStatus.CLOSED}>Đã đóng</option>
+                <option value={EJobStatus.REJECTED}>Từ chối</option>
+                <option value={EJobStatus.EXPIRED}>Hết hạn</option>
               </select>
               <input
                 value={locationFilter}
@@ -412,13 +452,20 @@ export default function JobModerationPage() {
                         </td>
                         <td className="px-3 sm:px-6 py-3 sm:py-4 text-on-surface-variant">
                           <span className="flex items-center gap-1 whitespace-nowrap">
-                            <MapPin className="w-3 h-3 shrink-0" /> {item.location}
+                            <MapPin className="w-3 h-3 shrink-0" />{" "}
+                            {item.location}
                           </span>
                         </td>
                         <td className="px-3 sm:px-6 py-3 sm:py-4">
-                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border ${statusConfig.bgClass}`}>
-                            <span className={`w-2 h-2 rounded-full ${statusConfig.dotClass}`}></span>
-                            <span className={statusConfig.textClass}>{statusConfig.label}</span>
+                          <span
+                            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border ${statusConfig.bgClass}`}
+                          >
+                            <span
+                              className={`w-2 h-2 rounded-full ${statusConfig.dotClass}`}
+                            ></span>
+                            <span className={statusConfig.textClass}>
+                              {statusConfig.label}
+                            </span>
                           </span>
                         </td>
                         <td className="px-3 sm:px-6 py-3 sm:py-4 font-medium text-on-surface-variant whitespace-nowrap">
@@ -441,7 +488,7 @@ export default function JobModerationPage() {
                                 Duyệt
                               </button>
                               <button
-                                onClick={() => handleOpenRejectModal(item.id)}
+                                onClick={() => handleOPENRejectModal(item.id)}
                                 disabled={actionLoading === item.id}
                                 className="border border-error text-error bg-transparent hover:bg-error/5 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-lg font-bold flex items-center gap-1 sm:gap-1.5 active:scale-95 transition-all shrink-0 text-[11px] sm:text-xs"
                                 title="Từ chối duyệt"
@@ -452,10 +499,12 @@ export default function JobModerationPage() {
                             </div>
                           ) : (
                             <span className="text-on-surface-variant text-[10px] font-medium italic">
-                              {item.status === EJobStatus.Open && "Đã duyệt"}
-                              {item.status === EJobStatus.Rejected && "Đã từ chối"}
-                              {item.status === EJobStatus.Closed && "Đã đóng"}
-                              {item.status === EJobStatus.Expired && "Đã hết hạn"}
+                              {item.status === EJobStatus.OPEN && "Đã duyệt"}
+                              {item.status === EJobStatus.REJECTED &&
+                                "Đã từ chối"}
+                              {item.status === EJobStatus.CLOSED && "Đã đóng"}
+                              {item.status === EJobStatus.EXPIRED &&
+                                "Đã hết hạn"}
                             </span>
                           )}
                         </td>
@@ -565,7 +614,7 @@ export default function JobModerationPage() {
       </div>
 
       {/* Modal từ chối duyệt bài */}
-      {isOpenRejectModal && (
+      {isOPENRejectModal && (
         <div className="fixed inset-0 bg-on-surface/40 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4">
           <div className="bg-surface-container-lowest border border-outline-variant rounded-xl shadow-xl w-full max-w-md overflow-hidden relative animate-in fade-in zoom-in-95 duration-200">
             {/* Modal Header */}

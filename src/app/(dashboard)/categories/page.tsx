@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { apiService } from "@/services/api-service";
-import { API_ENDPOINTS } from "@/constants/api";
+import { API_ENDPOINTS } from "@/constants/constants/api";
 import { CareerCategory } from "@/types/category";
 import { ECareerCategoriesStatus } from "@/constants/enums/category.enum";
 import { toast } from "react-toastify";
@@ -16,7 +16,7 @@ import {
   Trash2,
   Plus,
   X,
-  Loader2
+  Loader2,
 } from "lucide-react";
 
 export default function CategoriesPage() {
@@ -30,11 +30,13 @@ export default function CategoriesPage() {
 
   // States cho Modal Thêm/Sửa
   const [isOpenModal, setIsOpenModal] = useState(false);
-  const [editingCategory, setEditingCategory] = useState<CareerCategory | null>(null);
+  const [editingCategory, setEditingCategory] = useState<CareerCategory | null>(
+    null,
+  );
   const [formData, setFormData] = useState({
     name: "",
     description: "",
-    status: ECareerCategoriesStatus.Active
+    status: ECareerCategoriesStatus.ACTIVE,
   });
   const [submitLoading, setSubmitLoading] = useState(false);
 
@@ -45,56 +47,56 @@ export default function CategoriesPage() {
       name: "Công nghệ thông tin",
       slug: "cong-nghe-thong-tin",
       description: "Lập trình, mạng máy tính, AI và an ninh mạng",
-      status: ECareerCategoriesStatus.Active,
+      status: ECareerCategoriesStatus.ACTIVE,
       createdAt: "2026-05-10T08:00:00Z",
       updatedAt: "2026-05-10T08:00:00Z",
       deletedAt: null,
-      _count: { jobs: 452 }
+      _count: { jobs: 452 },
     },
     {
       id: "CAT-002",
       name: "Thiết kế Đồ họa",
       slug: "thiet-ke-do-hoa",
       description: "Thiết kế UI/UX, đồ họa 3D, branding",
-      status: ECareerCategoriesStatus.Active,
+      status: ECareerCategoriesStatus.ACTIVE,
       createdAt: "2026-05-11T09:00:00Z",
       updatedAt: "2026-05-11T09:00:00Z",
       deletedAt: null,
-      _count: { jobs: 218 }
+      _count: { jobs: 218 },
     },
     {
       id: "CAT-003",
       name: "Marketing & Sales",
       slug: "marketing-sales",
       description: "Truyền thông, quảng cáo kỹ thuật số, bán hàng",
-      status: ECareerCategoriesStatus.Active,
+      status: ECareerCategoriesStatus.ACTIVE,
       createdAt: "2026-05-12T10:00:00Z",
       updatedAt: "2026-05-12T10:00:00Z",
       deletedAt: null,
-      _count: { jobs: 312 }
+      _count: { jobs: 312 },
     },
     {
       id: "CAT-004",
       name: "Tài chính & Ngân hàng",
       slug: "tai-chinh-ngan-hang",
       description: "Kế toán, phân tích tài chính, ngân hàng",
-      status: ECareerCategoriesStatus.Inactive,
+      status: ECareerCategoriesStatus.INACTIVE,
       createdAt: "2026-05-13T11:00:00Z",
       updatedAt: "2026-05-13T11:00:00Z",
       deletedAt: null,
-      _count: { jobs: 84 }
+      _count: { jobs: 84 },
     },
     {
       id: "CAT-005",
       name: "Y tế & Chăm sóc sức khỏe",
       slug: "y-te-cham-soc-suc-khoe",
       description: "Bác sĩ, dược sĩ, thiết bị y tế",
-      status: ECareerCategoriesStatus.Active,
+      status: ECareerCategoriesStatus.ACTIVE,
       createdAt: "2026-05-14T12:00:00Z",
       updatedAt: "2026-05-14T12:00:00Z",
       deletedAt: null,
-      _count: { jobs: 156 }
-    }
+      _count: { jobs: 156 },
+    },
   ];
 
   const fetchCategories = async () => {
@@ -105,11 +107,13 @@ export default function CategoriesPage() {
         limit: limit.toString(),
         ...(search && { search }),
       });
-      
+
       const response = await apiService.get<{
         data: CareerCategory[];
         pagination: { totalItems: number; totalPages: number };
-      }>(`${API_ENDPOINTS.CATEGORIES.LIST}?${queryParams.toString()}`, { auth: true });
+      }>(`${API_ENDPOINTS.CATEGORIES.LIST}?${queryParams.toString()}`, {
+        auth: true,
+      });
 
       const res = response as unknown as {
         data: CareerCategory[];
@@ -146,14 +150,14 @@ export default function CategoriesPage() {
       setFormData({
         name: category.name,
         description: category.description || "",
-        status: category.status
+        status: category.status,
       });
     } else {
       setEditingCategory(null);
       setFormData({
         name: "",
         description: "",
-        status: ECareerCategoriesStatus.Active
+        status: ECareerCategoriesStatus.ACTIVE,
       });
     }
     setIsOpenModal(true);
@@ -164,7 +168,11 @@ export default function CategoriesPage() {
     setEditingCategory(null);
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >,
+  ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
@@ -180,17 +188,27 @@ export default function CategoriesPage() {
     try {
       if (editingCategory) {
         // Cập nhật danh mục
-        await apiService.patch(API_ENDPOINTS.CATEGORIES.UPDATE(editingCategory.id), formData, { auth: true });
+        await apiService.patch(
+          API_ENDPOINTS.CATEGORIES.UPDATE(editingCategory.id),
+          formData,
+          { auth: true },
+        );
         toast.success("Cập nhật danh mục ngành nghề thành công!");
-        
+
         setCategories((prev) =>
-          prev.map((c) => (c.id === editingCategory.id ? { ...c, ...formData } : c))
+          prev.map((c) =>
+            c.id === editingCategory.id ? { ...c, ...formData } : c,
+          ),
         );
       } else {
         // Tạo mới danh mục
-        const newCat = await apiService.post<CareerCategory>(API_ENDPOINTS.CATEGORIES.CREATE, formData, { auth: true });
+        const newCat = await apiService.post<CareerCategory>(
+          API_ENDPOINTS.CATEGORIES.CREATE,
+          formData,
+          { auth: true },
+        );
         toast.success("Thêm danh mục ngành nghề mới thành công!");
-        
+
         setCategories((prev) => [newCat, ...prev]);
         setTotalItems((prev) => prev + 1);
       }
@@ -205,10 +223,17 @@ export default function CategoriesPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm("Bạn có chắc chắn muốn xóa danh mục ngành nghề này không?")) return;
+    if (
+      !window.confirm(
+        "Bạn có chắc chắn muốn xóa danh mục ngành nghề này không?",
+      )
+    )
+      return;
 
     try {
-      await apiService.delete(API_ENDPOINTS.CATEGORIES.DELETE(id), { auth: true });
+      await apiService.delete(API_ENDPOINTS.CATEGORIES.DELETE(id), {
+        auth: true,
+      });
       toast.success("Xóa danh mục ngành nghề thành công!");
       setCategories((prev) => prev.filter((c) => c.id !== id));
       setTotalItems((prev) => Math.max(prev - 1, 0));
@@ -218,17 +243,28 @@ export default function CategoriesPage() {
     }
   };
 
-  const activeCount = categories.filter((c) => c.status === ECareerCategoriesStatus.Active).length;
-  const inactiveCount = categories.filter((c) => c.status === ECareerCategoriesStatus.Inactive).length;
-  const totalJobsCount = categories.reduce((sum, c) => sum + (c._count?.jobs || 0), 0);
+  const activeCount = categories.filter(
+    (c) => c.status === ECareerCategoriesStatus.ACTIVE,
+  ).length;
+  const inactiveCount = categories.filter(
+    (c) => c.status === ECareerCategoriesStatus.INACTIVE,
+  ).length;
+  const totalJobsCount = categories.reduce(
+    (sum, c) => sum + (c._count?.jobs || 0),
+    0,
+  );
 
   return (
     <div className="flex flex-col gap-4 sm:gap-6">
       {/* Header Section */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 text-left">
         <div>
-          <h2 className="font-headline text-xl sm:text-2xl font-bold text-on-surface">Quản lý danh mục ngành nghề</h2>
-          <p className="font-sans text-xs text-on-surface-variant mt-1">Quản lý các ngành nghề và danh mục công việc trong hệ thống FUSE.</p>
+          <h2 className="font-headline text-xl sm:text-2xl font-bold text-on-surface">
+            Quản lý danh mục ngành nghề
+          </h2>
+          <p className="font-sans text-xs text-on-surface-variant mt-1">
+            Quản lý các ngành nghề và danh mục công việc trong hệ thống FUSE.
+          </p>
         </div>
         <button
           onClick={() => handleOpenModal(null)}
@@ -246,8 +282,12 @@ export default function CategoriesPage() {
             <FolderTree className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
           <div className="text-left">
-            <p className="text-on-surface-variant font-sans text-[10px] sm:text-xs font-semibold uppercase tracking-wider">Tổng danh mục</p>
-            <p className="text-xl sm:text-2xl font-headline font-extrabold text-on-surface mt-0.5">{totalItems}</p>
+            <p className="text-on-surface-variant font-sans text-[10px] sm:text-xs font-semibold uppercase tracking-wider">
+              Tổng danh mục
+            </p>
+            <p className="text-xl sm:text-2xl font-headline font-extrabold text-on-surface mt-0.5">
+              {totalItems}
+            </p>
           </div>
         </div>
 
@@ -256,8 +296,12 @@ export default function CategoriesPage() {
             <Briefcase className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
           <div className="text-left">
-            <p className="text-on-surface-variant font-sans text-[10px] sm:text-xs font-semibold uppercase tracking-wider">Tổng số công việc</p>
-            <p className="text-xl sm:text-2xl font-headline font-extrabold text-on-surface mt-0.5">{totalJobsCount}</p>
+            <p className="text-on-surface-variant font-sans text-[10px] sm:text-xs font-semibold uppercase tracking-wider">
+              Tổng số công việc
+            </p>
+            <p className="text-xl sm:text-2xl font-headline font-extrabold text-on-surface mt-0.5">
+              {totalJobsCount}
+            </p>
           </div>
         </div>
 
@@ -266,8 +310,12 @@ export default function CategoriesPage() {
             <Eye className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
           <div className="text-left">
-            <p className="text-on-surface-variant font-sans text-[10px] sm:text-xs font-semibold uppercase tracking-wider">Đang hiển thị</p>
-            <p className="text-xl sm:text-2xl font-headline font-extrabold text-on-surface mt-0.5">{activeCount}</p>
+            <p className="text-on-surface-variant font-sans text-[10px] sm:text-xs font-semibold uppercase tracking-wider">
+              Đang hiển thị
+            </p>
+            <p className="text-xl sm:text-2xl font-headline font-extrabold text-on-surface mt-0.5">
+              {activeCount}
+            </p>
           </div>
         </div>
 
@@ -276,8 +324,12 @@ export default function CategoriesPage() {
             <EyeOff className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
           <div className="text-left">
-            <p className="text-on-surface-variant font-sans text-[10px] sm:text-xs font-semibold uppercase tracking-wider">Đã ẩn</p>
-            <p className="text-xl sm:text-2xl font-headline font-extrabold text-on-surface mt-0.5">{inactiveCount}</p>
+            <p className="text-on-surface-variant font-sans text-[10px] sm:text-xs font-semibold uppercase tracking-wider">
+              Đã ẩn
+            </p>
+            <p className="text-xl sm:text-2xl font-headline font-extrabold text-on-surface mt-0.5">
+              {inactiveCount}
+            </p>
           </div>
         </div>
       </section>
@@ -285,54 +337,77 @@ export default function CategoriesPage() {
       {/* Categories Table Section */}
       <section className="bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden shadow-sm">
         <div className="p-3 sm:p-4 border-b border-outline-variant bg-surface-container-low flex items-center justify-between">
-          <h3 className="font-headline text-sm sm:text-lg font-bold text-on-surface">Danh sách ngành nghề</h3>
+          <h3 className="font-headline text-sm sm:text-lg font-bold text-on-surface">
+            Danh sách ngành nghề
+          </h3>
         </div>
-        
+
         <div className="overflow-x-auto">
           {isLoading ? (
             <div className="py-16 sm:py-20 flex flex-col items-center justify-center gap-3">
               <Loader2 className="w-7 sm:w-8 h-7 sm:h-8 text-primary animate-spin" />
-              <p className="font-sans text-xs text-on-surface-variant font-medium">Đang tải danh sách danh mục...</p>
+              <p className="font-sans text-xs text-on-surface-variant font-medium">
+                Đang tải danh sách danh mục...
+              </p>
             </div>
           ) : (
             <table className="w-full text-left border-collapse min-w-[640px]">
               <thead>
                 <tr className="bg-surface-container-low text-on-surface-variant font-sans text-[10px] sm:text-xs font-bold border-b border-outline-variant">
-                  <th className="px-3 sm:px-6 py-3 sm:py-4 font-bold uppercase tracking-wider">Tên danh mục</th>
-                  <th className="px-3 sm:px-6 py-3 sm:py-4 font-bold uppercase tracking-wider text-center">Số lượng công việc</th>
-                  <th className="px-3 sm:px-6 py-3 sm:py-4 font-bold uppercase tracking-wider">Trạng thái</th>
-                  <th className="px-3 sm:px-6 py-3 sm:py-4 font-bold uppercase tracking-wider">Mô tả</th>
-                  <th className="px-3 sm:px-6 py-3 sm:py-4 font-bold uppercase tracking-wider text-right">Thao tác</th>
+                  <th className="px-3 sm:px-6 py-3 sm:py-4 font-bold uppercase tracking-wider">
+                    Tên danh mục
+                  </th>
+                  <th className="px-3 sm:px-6 py-3 sm:py-4 font-bold uppercase tracking-wider text-center">
+                    Số lượng công việc
+                  </th>
+                  <th className="px-3 sm:px-6 py-3 sm:py-4 font-bold uppercase tracking-wider">
+                    Trạng thái
+                  </th>
+                  <th className="px-3 sm:px-6 py-3 sm:py-4 font-bold uppercase tracking-wider">
+                    Mô tả
+                  </th>
+                  <th className="px-3 sm:px-6 py-3 sm:py-4 font-bold uppercase tracking-wider text-right">
+                    Thao tác
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-outline-variant font-sans text-xs">
                 {categories.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="text-center py-10 font-medium text-on-surface-variant">
+                    <td
+                      colSpan={5}
+                      className="text-center py-10 font-medium text-on-surface-variant"
+                    >
                       Chưa có danh mục ngành nghề nào.
                     </td>
                   </tr>
                 ) : (
                   categories.map((item, index) => (
-                    <tr 
-                      key={item.id} 
+                    <tr
+                      key={item.id}
                       className={`hover:bg-surface-container-low transition-colors ${
                         index % 2 === 1 ? "bg-surface-container-low/10" : ""
                       }`}
                     >
                       <td className="px-3 sm:px-6 py-3 sm:py-4">
-                        <span className="font-bold text-on-surface">{item.name}</span>
+                        <span className="font-bold text-on-surface">
+                          {item.name}
+                        </span>
                       </td>
                       <td className="px-3 sm:px-6 py-3 sm:py-4 text-center font-bold text-on-surface-variant">
                         {item._count?.jobs || 0}
                       </td>
                       <td className="px-3 sm:px-6 py-3 sm:py-4">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
-                          item.status === ECareerCategoriesStatus.Active
-                            ? "bg-secondary/10 text-secondary border-secondary/20"
-                            : "bg-outline-variant/30 text-on-surface-variant border-outline-variant/50"
-                        }`}>
-                          {item.status === ECareerCategoriesStatus.Active ? "Hiển thị" : "Đang ẩn"}
+                        <span
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
+                            item.status === ECareerCategoriesStatus.ACTIVE
+                              ? "bg-secondary/10 text-secondary border-secondary/20"
+                              : "bg-outline-variant/30 text-on-surface-variant border-outline-variant/50"
+                          }`}
+                        >
+                          {item.status === ECareerCategoriesStatus.ACTIVE
+                            ? "Hiển thị"
+                            : "Đang ẩn"}
                         </span>
                       </td>
                       <td className="px-3 sm:px-6 py-3 sm:py-4 text-on-surface-variant max-w-[200px] sm:max-w-[300px] truncate text-left">
@@ -372,11 +447,16 @@ export default function CategoriesPage() {
             </p>
             <select
               value={limit}
-              onChange={(e) => { setLimit(Number(e.target.value)); setPage(1); }}
+              onChange={(e) => {
+                setLimit(Number(e.target.value));
+                setPage(1);
+              }}
               className="px-2 sm:px-3 py-1.5 rounded-lg border border-outline-variant bg-surface-container-lowest font-sans text-[10px] sm:text-xs font-semibold focus:border-primary outline-none"
             >
               {[10, 15, 20, 50, 100].map((opt) => (
-                <option key={opt} value={opt}>{opt} / trang</option>
+                <option key={opt} value={opt}>
+                  {opt} / trang
+                </option>
               ))}
             </select>
           </div>
@@ -398,7 +478,7 @@ export default function CategoriesPage() {
               <h3 className="font-headline text-md font-bold text-on-surface">
                 {editingCategory ? "Chỉnh sửa danh mục" : "Thêm danh mục mới"}
               </h3>
-              <button 
+              <button
                 onClick={handleCloseModal}
                 className="p-1 rounded-lg text-on-surface-variant hover:bg-surface-container-highest transition-colors"
               >
@@ -407,10 +487,16 @@ export default function CategoriesPage() {
             </div>
 
             {/* Modal Form */}
-            <form onSubmit={handleSubmit} className="p-4 sm:p-6 flex flex-col gap-4 text-left">
+            <form
+              onSubmit={handleSubmit}
+              className="p-4 sm:p-6 flex flex-col gap-4 text-left"
+            >
               {/* Name */}
               <div className="flex flex-col gap-1.5">
-                <label className="font-sans text-xs font-bold text-on-surface-variant" htmlFor="modal-name">
+                <label
+                  className="font-sans text-xs font-bold text-on-surface-variant"
+                  htmlFor="modal-name"
+                >
                   Tên danh mục <span className="text-error">*</span>
                 </label>
                 <input
@@ -426,7 +512,10 @@ export default function CategoriesPage() {
 
               {/* Description */}
               <div className="flex flex-col gap-1.5">
-                <label className="font-sans text-xs font-bold text-on-surface-variant" htmlFor="modal-desc">
+                <label
+                  className="font-sans text-xs font-bold text-on-surface-variant"
+                  htmlFor="modal-desc"
+                >
                   Mô tả
                 </label>
                 <textarea
@@ -442,7 +531,10 @@ export default function CategoriesPage() {
 
               {/* Status */}
               <div className="flex flex-col gap-1.5">
-                <label className="font-sans text-xs font-bold text-on-surface-variant" htmlFor="modal-status">
+                <label
+                  className="font-sans text-xs font-bold text-on-surface-variant"
+                  htmlFor="modal-status"
+                >
                   Trạng thái hiển thị
                 </label>
                 <select
@@ -452,8 +544,12 @@ export default function CategoriesPage() {
                   onChange={handleInputChange}
                   className="w-full px-4 py-2.5 rounded-lg border border-outline-variant bg-transparent font-sans text-xs outline-none focus:border-primary transition-all font-semibold"
                 >
-                  <option value={ECareerCategoriesStatus.Active}>Hiển thị hệ thống</option>
-                  <option value={ECareerCategoriesStatus.Inactive}>Tạm ẩn danh mục</option>
+                  <option value={ECareerCategoriesStatus.ACTIVE}>
+                    Hiển thị hệ thống
+                  </option>
+                  <option value={ECareerCategoriesStatus.INACTIVE}>
+                    Tạm ẩn danh mục
+                  </option>
                 </select>
               </div>
 

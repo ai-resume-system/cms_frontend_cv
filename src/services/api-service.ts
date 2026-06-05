@@ -1,13 +1,95 @@
-import { env } from "@/lib/config/env";
+import { API_ENDPOINTS } from "@/constants/constants/api";
+import {
+  ACCESS_TOKEN_REFRESH_BUFFER_MS,
+  AUTH_CLIENT,
+} from "@/constants/constants/auth-client";
 import { useAuthStore } from "@/features/auth/store/authStore";
-import { ApiResponse, ApiError } from "@/types/api";
+import { env } from "@/lib/config/env";
+import { ApiError, ApiResponse } from "@/types/api";
 
 interface ApiServiceOptions extends RequestInit {
   auth?: boolean;
   revalidate?: number;
 }
 
-let isRefreshing = false;
+let ongoingRefresh: Promise<boolean> | null = null;
+
+function shouldRefreshAccessToken(): boolean {
+  const { accessToken, expiresAt } = useAuthStore.getState();
+  if (!accessToken || !expiresAt) {
+    return true;
+  }
+
+  return (
+    new Date(expiresAt).getTime() - Date.now() <= ACCESS_TOKEN_REFRESH_BUFFER_MS
+  );
+}
+
+async function doRefresh(): Promise<boolean> {
+  try {
+    const refreshResponse = await fetch(
+      `${env.NEXT_PUBLIC_API_URL}${API_ENDPOINTS.AUTH.REFRESH_TOKEN}`,
+      {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          "x-auth-client": AUTH_CLIENT,
+        },
+      },
+    );
+
+    if (!refreshResponse.ok) {
+      throw new Error("Refresh token request failed.");
+    }
+
+    const refreshData = await refreshResponse.json();
+    if (refreshData?.status === "success" && refreshData?.data?.accessToken) {
+      useAuthStore
+        .getState()
+        .setAccessToken(
+          refreshData.data.accessToken,
+          refreshData.data.expiresAt,
+          refreshData.data.expiresIn,
+        );
+      return true;
+    }
+
+    throw new Error("Refresh token payload invalid.");
+  } catch {
+    useAuthStore.getState().clearAuth();
+    if (
+      typeof window !== "undefined" &&
+      window.location.pathname !== "/login"
+    ) {
+      window.location.href = "/login";
+    }
+    return false;
+  }
+}
+
+async function refreshAccessToken(force = false): Promise<boolean> {
+  const state = useAuthStore.getState();
+
+  if (
+    !force &&
+    state.accessToken &&
+    state.expiresAt &&
+    !shouldRefreshAccessToken()
+  ) {
+    return true;
+  }
+
+  if (ongoingRefresh) {
+    return ongoingRefresh;
+  }
+
+  ongoingRefresh = doRefresh().finally(() => {
+    ongoingRefresh = null;
+  });
+
+  return ongoingRefresh;
+}
 
 async function request<T>(
   path: string,
@@ -16,6 +98,7 @@ async function request<T>(
   const { auth = false, revalidate, headers, ...init } = options;
 
   const requestHeaders = new Headers(headers);
+  requestHeaders.set("x-auth-client", AUTH_CLIENT);
 
   const isFormData =
     typeof FormData !== "undefined" && init.body instanceof FormData;
@@ -25,6 +108,18 @@ async function request<T>(
   }
 
   if (auth) {
+    const accessToken = useAuthStore.getState().accessToken;
+
+    if (!accessToken || shouldRefreshAccessToken()) {
+      const refreshed = await refreshAccessToken();
+      if (!refreshed && !useAuthStore.getState().accessToken) {
+        throw {
+          statusCode: 401,
+          message: "Phien dang nhap da het han.",
+        } satisfies ApiError;
+      }
+    }
+
     const token = useAuthStore.getState().accessToken;
     if (token) {
       requestHeaders.set("Authorization", `Bearer ${token}`);
@@ -38,78 +133,54 @@ async function request<T>(
     next: revalidate !== undefined ? { revalidate } : undefined,
   });
 
-  if (
-    response.status === 401 &&
-    auth &&
-    typeof window !== "undefined" &&
-    !isRefreshing
-  ) {
-    isRefreshing = true;
-    try {
-      const refreshResponse = await fetch(
-        `${env.NEXT_PUBLIC_API_URL}/api/v1/auth/refresh-token`,
-        {
-          method: "POST",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
-        },
-      );
+  if (response.status === 401 && auth) {
+    const refreshed = await refreshAccessToken(true);
 
-      if (refreshResponse.ok) {
-        const refreshData = await refreshResponse.json();
-        if (
-          refreshData?.status === "success" &&
-          refreshData?.data?.accessToken
-        ) {
-          const newToken = refreshData.data.accessToken;
-          useAuthStore.getState().setAccessToken(newToken);
+    if (refreshed) {
+      const retryHeaders = new Headers(requestHeaders);
+      const newToken = useAuthStore.getState().accessToken;
 
-          isRefreshing = false;
-          requestHeaders.set("Authorization", `Bearer ${newToken}`);
-
-          const retryResponse = await fetch(
-            `${env.NEXT_PUBLIC_API_URL}${path}`,
-            {
-              ...init,
-              headers: requestHeaders,
-              credentials: "include",
-              next: revalidate !== undefined ? { revalidate } : undefined,
-            },
-          );
-
-          const retryPayload = await retryResponse.json().catch(() => null);
-          if (!retryResponse.ok || retryPayload?.status === "error") {
-            throw {
-              statusCode: retryResponse.status,
-              message:
-                retryPayload?.message ??
-                `Yêu cầu thất bại: ${retryResponse.status}`,
-            } satisfies ApiError;
-          }
-
-          if (
-            retryPayload &&
-            typeof retryPayload === "object" &&
-            "pagination" in retryPayload
-          ) {
-            return {
-              data: retryPayload.data,
-              pagination: retryPayload.pagination,
-            } as any;
-          }
-          return (retryPayload as ApiResponse<T>).data;
-        }
+      if (newToken) {
+        retryHeaders.set("Authorization", `Bearer ${newToken}`);
       }
 
-      useAuthStore.getState().clearAuth();
-      if (window.location.pathname !== "/login") {
-        window.location.href = "/login";
+      const retryResponse = await fetch(`${env.NEXT_PUBLIC_API_URL}${path}`, {
+        ...init,
+        headers: retryHeaders,
+        credentials: "include",
+        next: revalidate !== undefined ? { revalidate } : undefined,
+      });
+
+      const retryPayload = await retryResponse.json().catch(() => null);
+      if (!retryResponse.ok || retryPayload?.status === "error") {
+        throw {
+          statusCode: retryResponse.status,
+          message:
+            retryPayload?.message ??
+            `Yeu cau that bai: ${retryResponse.status}`,
+        } satisfies ApiError;
       }
-    } catch (e) {
-      isRefreshing = false;
-      throw e;
-    } finally {
-      isRefreshing = false;
+
+      if (
+        retryPayload &&
+        typeof retryPayload === "object" &&
+        "pagination" in retryPayload
+      ) {
+        return {
+          data: retryPayload.data,
+          pagination: retryPayload.pagination,
+        } as T;
+      }
+
+      return (retryPayload as ApiResponse<T>).data;
+    }
+
+    useAuthStore.getState().clearAuth();
+    if (
+      typeof window !== "undefined" &&
+      window.location.pathname !== "/login"
+    ) {
+      window.location.href = "/login";
     }
   }
 
@@ -118,7 +189,7 @@ async function request<T>(
   if (!response.ok || payload?.status === "error") {
     throw {
       statusCode: response.status,
-      message: payload?.message ?? `Yêu cầu thất bại: ${response.status}`,
+      message: payload?.message ?? `Yeu cau that bai: ${response.status}`,
       code: payload?.error?.code,
       fields: payload?.error?.fields,
     } satisfies ApiError;
@@ -128,7 +199,7 @@ async function request<T>(
     return {
       data: payload.data,
       pagination: payload.pagination,
-    } as any;
+    } as T;
   }
 
   return (payload as ApiResponse<T>).data;
@@ -183,4 +254,6 @@ export const apiService = {
       method: "DELETE",
     }),
 };
+
+export { refreshAccessToken };
 export type { ApiServiceOptions };

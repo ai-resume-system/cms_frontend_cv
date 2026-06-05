@@ -1,14 +1,16 @@
-"use client";
+﻿"use client";
 
-import React, { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { useAuthStore } from "@/features/auth/store/authStore";
-import { tryRestoreSession } from "@/features/auth/utils/auth-bootstrap";
-import { useSidebarStore } from "@/features/sidebar/store/sidebarStore";
-import { EUserRole } from "@/constants/enums/user.enum";
-import Sidebar from "@/components/ui/Sidebar";
-import Header from "@/components/ui/Header";
 import { ToastContainer } from "react-toastify";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+
+import Header from "@/components/ui/Header";
+import Sidebar from "@/components/ui/Sidebar";
+import { EUserRole } from "@/constants/enums/user.enum";
+import { useAuthStore } from "@/features/auth/store/authStore";
+import { useSidebarStore } from "@/features/sidebar/store/sidebarStore";
+import { tryRestoreSession } from "@/features/auth/utils/auth-bootstrap";
+
 import "react-toastify/dist/ReactToastify.css";
 
 export default function DashboardLayout({
@@ -31,7 +33,7 @@ export default function DashboardLayout({
       }
 
       const currentUser = useAuthStore.getState().user;
-      if (currentUser?.role !== EUserRole.Admin) {
+      if (currentUser?.role !== EUserRole.ADMIN) {
         useAuthStore.getState().clearAuth();
         router.replace("/login");
         return;
@@ -40,35 +42,35 @@ export default function DashboardLayout({
       setIsLoaded(true);
     };
 
-    bootstrap();
+    void bootstrap();
   }, [router]);
 
   if (!isLoaded || !isAuthenticated || !user) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-surface">
+      <div className="flex min-h-screen items-center justify-center bg-surface">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          <p className="font-sans text-xs font-semibold text-on-surface-variant">Đang bảo mật phiên truy cập...</p>
+          <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          <p className="font-sans text-xs font-semibold text-on-surface-variant">
+            Vui lòng chờ...
+          </p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-surface text-on-surface min-h-screen font-sans">
-      <ToastContainer position="top-right" autoClose={3000} theme="colored" />
+    <div className="min-h-screen bg-surface font-sans text-on-surface">
+      <ToastContainer autoClose={3000} position="top-right" theme="colored" />
       <Sidebar />
       <div
         className={`
-          flex flex-col min-h-screen transition-all duration-300
-          /* Mobile: không padding left (sidebar overlay) */
+          flex min-h-screen flex-col transition-all duration-300
           pl-0
-          /* Desktop: padding theo sidebar state */
           ${isCollapsed ? "lg:pl-[72px]" : "lg:pl-64"}
         `}
       >
         <Header />
-        <main className="flex-1 pt-18 sm:pt-20 md:pt-24 px-3 sm:px-4 md:px-6 lg:px-8 pb-8 sm:pb-12 w-full max-w-[1400px] mx-auto overflow-x-hidden">
+        <main className="mx-auto flex-1 w-full max-w-[1400px] overflow-x-hidden px-3 pb-8 pt-18 sm:px-4 sm:pb-12 sm:pt-20 md:px-6 md:pt-24 lg:px-8">
           {children}
         </main>
       </div>
