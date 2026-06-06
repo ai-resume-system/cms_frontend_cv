@@ -8,12 +8,12 @@
   --secondary-container: #6cf8bb;
   --background: #f9f9ff;
   --surface: #f9f9ff;
-  --surface-container-low: #f1f3ff;
+  --surface-container-low: #e2e6f4;
   --surface-container-lowest: #ffffff;
   --surface-container-highest: #dce2f7;
   --on-surface: #141b2b;
   --on-surface-variant: #444653;
-  --outline-variant: #c4c5d5;
+  --outline-variant: #abb0ca;
   --error: #ba1a1a;
   --error-container: #ffdad6;
 }
@@ -35,14 +35,14 @@
   --color-error-container: var(--error-container);
   
   /* Font Family Mapping */
-  --font-sans: 'Inter', sans-serif;
-  --font-headline: 'Manrope', sans-serif;
+  --font-sans: var(--font-inter), sans-serif;
+  --font-headline: var(--font-manrope), sans-serif;
 }
 
 body {
   background-color: var(--background);
   color: var(--on-surface);
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter), sans-serif;
 }
 
 /* Custom transitions and components */
@@ -52,4 +52,31 @@ body {
 
 .active-scale-95:active {
   transform: scale(0.95);
+}
+
+/* Styling for HTML content rendered from Rich Text Editor (React Quill) */
+.html-content {
+  width: 100%;
+}
+.html-content ul {
+  list-style-type: disc !important;
+  padding-left: 1.25rem !important;
+  margin-top: 0.5rem !important;
+  margin-bottom: 0.5rem !important;
+}
+.html-content ol {
+  list-style-type: decimal !important;
+  padding-left: 1.25rem !important;
+  margin-top: 0.5rem !important;
+  margin-bottom: 0.5rem !important;
+}
+.html-content li {
+  margin-bottom: 0.25rem !important;
+  display: list-item !important;
+}
+.html-content p {
+  margin-bottom: 0.5rem !important;
+}
+.html-content strong {
+  font-weight: 700 !important;
 }

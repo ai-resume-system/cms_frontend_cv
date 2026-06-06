@@ -1,21 +1,21 @@
-﻿"use client";
+"use client";
 
-import Image from "next/image";
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
 import {
+  ChartBarStacked,
   CheckSquare,
-  FolderTree,
   LayoutDashboard,
   LogOut,
   Users,
   X,
 } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 
-import { API_ENDPOINTS } from "@/constants/constants/api";
+import { CMS_ROUTES } from "@/constants/constants/routes";
 import { useAuthStore } from "@/features/auth/store/authStore";
 import { useSidebarStore } from "@/features/sidebar/store/sidebarStore";
-import { apiService } from "@/services/api-service";
+import { logout } from "@/services/auth.service";
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -25,22 +25,23 @@ export default function Sidebar() {
 
   const handleLogout = async () => {
     try {
-      await apiService.post(API_ENDPOINTS.AUTH.LOGOUT, undefined, {
-        auth: true,
-      });
+      await logout();
     } catch {
-      // Vẫn đăng xuất cục bộ nếu API logout thất bại.
     } finally {
       clearAuth();
-      router.push("/login");
+      router.push(CMS_ROUTES.LOGIN);
     }
   };
 
   const navItems = [
-    { label: "Tổng quan", href: "/", icon: LayoutDashboard },
-    { label: "Quản lý người dùng", href: "/users", icon: Users },
-    { label: "Kiểm duyệt việc làm", href: "/jobs", icon: CheckSquare },
-    { label: "Danh mục ngành nghề", href: "/categories", icon: FolderTree },
+    { label: "Tổng quan", href: CMS_ROUTES.DASHBOARD, icon: LayoutDashboard },
+    { label: "Quản lý người dùng", href: CMS_ROUTES.USERS, icon: Users },
+    { label: "Kiểm duyệt việc làm", href: CMS_ROUTES.JOBS, icon: CheckSquare },
+    {
+      label: "Danh mục ngành nghề",
+      href: CMS_ROUTES.CATEGORIES,
+      icon: ChartBarStacked,
+    },
   ];
 
   const handleNavClick = () => {
@@ -61,15 +62,9 @@ export default function Sidebar() {
       />
 
       <aside
-        className={`
-          fixed left-0 top-0 z-50 flex h-screen flex-col gap-4 overflow-y-auto
-          border-r border-outline-variant bg-surface-container-low py-4
-          transition-all duration-300
-          w-[280px] -translate-x-full
-          ${!isCollapsed ? "translate-x-0" : ""}
-          lg:translate-x-0
-          ${isCollapsed ? "lg:w-[72px]" : "lg:w-64"}
-        `}
+        className={`fixed left-0 top-0 z-50 flex h-screen w-[280px] -translate-x-full flex-col gap-4 overflow-y-auto border-r border-outline-variant bg-surface-container-highest py-4 transition-all duration-300 ${
+          !isCollapsed ? "translate-x-0" : ""
+        } lg:translate-x-0 ${isCollapsed ? "lg:w-[72px]" : "lg:w-64"}`}
       >
         <div
           className={`mb-2 flex items-center justify-between border-b border-outline-variant pb-2 ${
@@ -78,7 +73,7 @@ export default function Sidebar() {
         >
           <Link
             className="flex min-w-0 items-center gap-3"
-            href="/"
+            href={CMS_ROUTES.DASHBOARD}
             onClick={handleNavClick}
           >
             <Image
@@ -98,7 +93,7 @@ export default function Sidebar() {
             </div>
           </Link>
           <button
-            className="rounded-lg p-1.5 text-on-surface-variant transition-colors hover:bg-surface-container-highest lg:hidden"
+            className="rounded-lg p-1.5 text-on-surface-variant transition-colors hover:bg-surface-container-low lg:hidden"
             onClick={close}
           >
             <X className="h-5 w-5" />
@@ -114,24 +109,26 @@ export default function Sidebar() {
               return (
                 <li key={item.href}>
                   <Link
-                    className={`
-                      flex items-center gap-4 px-6 py-3 transition-all duration-150 active:scale-95
-                      ${isCollapsed ? "lg:justify-center lg:px-0" : ""}
-                      ${
-                        isActive
-                          ? "border-r-4 border-primary bg-primary/10 font-bold text-primary"
-                          : "text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface"
-                      }
-                    `}
+                    className={`flex items-center gap-4 px-6 py-3 transition-all duration-150 active:scale-95 ${
+                      isCollapsed ? "lg:justify-center lg:px-0" : ""
+                    } ${
+                      isActive
+                        ? "border-r-4 border-primary bg-primary/10 font-bold text-primary"
+                        : "text-on-surface-variant hover:bg-white/60 hover:text-primary"
+                    }`}
                     href={item.href}
                     onClick={handleNavClick}
                     title={isCollapsed ? item.label : undefined}
                   >
                     <Icon
-                      className={`h-5 w-5 shrink-0 ${isActive ? "text-primary" : "text-on-surface-variant"}`}
+                      className={`h-5 w-5 shrink-0 ${
+                        isActive ? "text-primary" : "text-on-surface-variant"
+                      }`}
                     />
                     <span
-                      className={`font-sans text-xs font-semibold ${isCollapsed ? "lg:hidden" : ""}`}
+                      className={`font-sans font-semibold ${
+                        isCollapsed ? "lg:hidden" : ""
+                      }`}
                     >
                       {item.label}
                     </span>
@@ -142,16 +139,20 @@ export default function Sidebar() {
           </ul>
         </nav>
 
-        <div className="mt-auto border-t border-outline-variant pt-4">
+        <div className="border-t border-outline-variant">
           <button
-            className={`w-full px-6 py-3 text-left text-error transition-all duration-150 hover:bg-error-container/10 active:scale-95 ${isCollapsed ? "lg:justify-center lg:px-0" : ""}`}
+            className={`w-full mt-3 px-6 py-3 text-left text-error transition-all duration-150 hover:bg-error-container/50 active:scale-95 cursor-pointer ${
+              isCollapsed ? "lg:justify-center lg:px-0" : ""
+            }`}
             onClick={handleLogout}
             title={isCollapsed ? "Đăng xuất" : undefined}
           >
-            <span className="flex items-center gap-4">
+            <span className="flex items-center justify-center gap-4">
               <LogOut className="h-5 w-5 shrink-0 text-error" />
               <span
-                className={`font-sans text-xs font-semibold ${isCollapsed ? "lg:hidden" : ""}`}
+                className={`font-sans text-sm font-semibold ${
+                  isCollapsed ? "lg:hidden" : ""
+                }`}
               >
                 Đăng xuất
               </span>

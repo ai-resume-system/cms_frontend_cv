@@ -4,6 +4,7 @@ import { CareerCategory } from "./category";
 
 export interface Job {
   id: string;
+  slug: string;
   title: string;
   shortDescription: string | null;
   description: string;

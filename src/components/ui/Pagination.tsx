@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface PaginationProps {
@@ -10,7 +9,10 @@ interface PaginationProps {
   disabled?: boolean;
 }
 
-function getPageNumbers(current: number, total: number): (number | "ellipsis")[] {
+function getPageNumbers(
+  current: number,
+  total: number,
+): (number | "ellipsis")[] {
   if (total <= 5) {
     return Array.from({ length: total }, (_, i) => i + 1);
   }
@@ -22,13 +24,25 @@ function getPageNumbers(current: number, total: number): (number | "ellipsis")[]
   } else if (current >= total - 2) {
     pages.push("ellipsis", total - 2, total - 1, total);
   } else {
-    pages.push("ellipsis", current - 1, current, current + 1, "ellipsis", total);
+    pages.push(
+      "ellipsis",
+      current - 1,
+      current,
+      current + 1,
+      "ellipsis",
+      total,
+    );
   }
 
   return pages;
 }
 
-export function Pagination({ currentPage, totalPages, onPageChange, disabled }: PaginationProps) {
+export function Pagination({
+  currentPage,
+  totalPages,
+  onPageChange,
+  disabled,
+}: PaginationProps) {
   if (totalPages <= 1) return null;
 
   const pages = getPageNumbers(currentPage, totalPages);
@@ -45,7 +59,10 @@ export function Pagination({ currentPage, totalPages, onPageChange, disabled }: 
 
       {pages.map((item, idx) =>
         item === "ellipsis" ? (
-          <span key={`ellipsis-${idx}`} className="px-1 sm:px-2 py-2 font-sans text-xs text-on-surface-variant select-none">
+          <span
+            key={`ellipsis-${idx}`}
+            className="px-1 sm:px-2 py-2 font-sans text-xs text-on-surface-variant select-none"
+          >
             ...
           </span>
         ) : (
@@ -61,7 +78,7 @@ export function Pagination({ currentPage, totalPages, onPageChange, disabled }: 
           >
             {item}
           </button>
-        )
+        ),
       )}
 
       <button

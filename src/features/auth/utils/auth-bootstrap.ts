@@ -1,11 +1,9 @@
-import { API_ENDPOINTS } from "@/constants/constants/api";
-import {
-  ACCESS_TOKEN_REFRESH_BUFFER_MS,
-  AUTH_CLIENT,
-} from "@/constants/constants/auth-client";
+import { ACCESS_TOKEN_REFRESH_BUFFER_MS } from "@/constants/constants/auth-client";
+import { CMS_ROUTES } from "@/constants/constants/routes";
 import { EUserRole } from "@/constants/enums/user.enum";
 import { useAuthStore } from "@/features/auth/store/authStore";
-import { env } from "@/lib/config/env";
+import { redirectToLogin } from "@/lib/utils/navigation";
+import { fetchCurrentAdmin } from "@/services/account.service";
 import { refreshAccessToken } from "@/services/api-service";
 
 export async function tryRestoreSession(): Promise<boolean> {
@@ -31,38 +29,33 @@ export async function tryRestoreSession(): Promise<boolean> {
       }
     }
 
+    const user = await fetchCurrentAdmin();
+
+    if (user.role !== EUserRole.ADMIN) {
+      store.clearAuth();
+      redirectToLogin();
+      return false;
+    }
+
     const token = useAuthStore.getState().accessToken;
     if (!token) {
       return false;
     }
 
-    const userRes = await fetch(
-      `${env.NEXT_PUBLIC_API_URL}${API_ENDPOINTS.ACCOUNT.ME}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "x-auth-client": AUTH_CLIENT,
-        },
-        credentials: "include",
-      },
-    );
-
-    if (!userRes.ok) return false;
-
-    const userData = await userRes.json();
-    if (userData?.status !== "success" || !userData?.data) return false;
-
-    if (userData.data.role !== EUserRole.ADMIN) {
-      store.clearAuth();
-      return false;
-    }
-
     const { expiresAt, expiresIn } = useAuthStore.getState();
+    store.setAuth(token, user, expiresAt, expiresIn);
 
-    store.setAuth(token, userData.data, expiresAt, expiresIn);
     return true;
   } catch {
     store.clearAuth();
+
+    if (
+      typeof window !== "undefined" &&
+      window.location.pathname !== CMS_ROUTES.LOGIN
+    ) {
+      redirectToLogin();
+    }
+
     return false;
   }
 }

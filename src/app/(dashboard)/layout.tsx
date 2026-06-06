@@ -1,17 +1,15 @@
-﻿"use client";
+"use client";
 
-import { ToastContainer } from "react-toastify";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import Header from "@/components/ui/Header";
 import Sidebar from "@/components/ui/Sidebar";
+import { CMS_ROUTES } from "@/constants/constants/routes";
 import { EUserRole } from "@/constants/enums/user.enum";
 import { useAuthStore } from "@/features/auth/store/authStore";
-import { useSidebarStore } from "@/features/sidebar/store/sidebarStore";
 import { tryRestoreSession } from "@/features/auth/utils/auth-bootstrap";
-
-import "react-toastify/dist/ReactToastify.css";
+import { useSidebarStore } from "@/features/sidebar/store/sidebarStore";
 
 export default function DashboardLayout({
   children,
@@ -28,14 +26,14 @@ export default function DashboardLayout({
       const restored = await tryRestoreSession();
 
       if (!restored) {
-        router.replace("/login");
+        router.replace(CMS_ROUTES.LOGIN);
         return;
       }
 
       const currentUser = useAuthStore.getState().user;
       if (currentUser?.role !== EUserRole.ADMIN) {
         useAuthStore.getState().clearAuth();
-        router.replace("/login");
+        router.replace(CMS_ROUTES.LOGIN);
         return;
       }
 
@@ -50,7 +48,7 @@ export default function DashboardLayout({
       <div className="flex min-h-screen items-center justify-center bg-surface">
         <div className="flex flex-col items-center gap-4">
           <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-          <p className="font-sans text-xs font-semibold text-on-surface-variant">
+          <p className="font-sans text-sm font-semibold text-on-surface-variant">
             Vui lòng chờ...
           </p>
         </div>
@@ -60,17 +58,14 @@ export default function DashboardLayout({
 
   return (
     <div className="min-h-screen bg-surface font-sans text-on-surface">
-      <ToastContainer autoClose={3000} position="top-right" theme="colored" />
       <Sidebar />
       <div
-        className={`
-          flex min-h-screen flex-col transition-all duration-300
-          pl-0
-          ${isCollapsed ? "lg:pl-[72px]" : "lg:pl-64"}
-        `}
+        className={`flex min-h-screen flex-col pl-0 transition-all duration-300 ${
+          isCollapsed ? "lg:pl-[72px]" : "lg:pl-64"
+        }`}
       >
         <Header />
-        <main className="mx-auto flex-1 w-full max-w-[1400px] overflow-x-hidden px-3 pb-8 pt-18 sm:px-4 sm:pb-12 sm:pt-20 md:px-6 md:pt-24 lg:px-8">
+        <main className="mx-auto w-full flex-1 overflow-x-hidden px-3 pb-8 pt-18 sm:px-4 sm:pb-12 sm:pt-20 md:px-6 md:pt-24 lg:px-8">
           {children}
         </main>
       </div>
