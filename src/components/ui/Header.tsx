@@ -50,13 +50,13 @@ export default function Header() {
   return (
     <>
       <header
-        className={`fixed right-0 top-0 z-40 flex h-14 w-full items-center justify-between border-b border-outline-variant bg-surface-container-lowest px-3 transition-all duration-300 sm:h-16 sm:px-4 md:px-6 lg:px-8 ${
+        className={`fixed right-0 top-0 z-40 flex h-14 w-full items-center justify-between bg-white shadow-md px-2 transition-all duration-300 sm:h-16 sm:px-4 md:px-3 lg:px-4 ${
           isCollapsed ? "lg:w-[calc(100%-72px)]" : "lg:w-[calc(100%-256px)]"
         }`}
       >
         <div className="flex min-w-0 flex-1 items-center">
           <button
-            className="shrink-0 rounded-lg py-2 text-on-surface-variant transition-colors hover:bg-surface-container-low active:scale-95"
+            className="shrink-0 rounded-lg py-2 px-3 text-on-surface-variant transition-colors hover:bg-surface-container-low active:scale-95"
             onClick={toggleSidebar}
             title="Menu"
           >
