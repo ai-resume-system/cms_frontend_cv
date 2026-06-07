@@ -10,6 +10,7 @@ import {
 import { type AuthUser, useAuthStore } from "@/features/auth/store/authStore";
 import { env } from "@/lib/config/env";
 import { redirectToLogin } from "@/lib/utils/navigation";
+import { showErrorToast } from "@/lib/ui/toast";
 import type { ApiError, ApiFieldErrorResponse, ApiResponse } from "@/types/api";
 
 type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
@@ -93,7 +94,13 @@ async function safeFetch(
   try {
     return await fetch(input, init);
   } catch (error: unknown) {
-    throw toApiError(error);
+    const apiError = toApiError(error);
+    if (apiError.message === LOCAL_API_ERROR_MESSAGES.NETWORK_UNAVAILABLE) {
+      showErrorToast(LOCAL_API_ERROR_MESSAGES.NETWORK_UNAVAILABLE, {
+        toastId: "network-error",
+      });
+    }
+    throw apiError;
   }
 }
 
