@@ -57,6 +57,17 @@ body {
 /* Styling for HTML content rendered from Rich Text Editor (React Quill) */
 .html-content {
   width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  white-space: normal;
+}
+.html-content > *:first-child {
+  margin-top: 0 !important;
+}
+.html-content > *:last-child {
+  margin-bottom: 0 !important;
 }
 .html-content ul {
   list-style-type: disc !important;
@@ -79,6 +90,28 @@ body {
 }
 .html-content strong {
   font-weight: 700 !important;
+}
+.html-content a {
+  color: var(--primary) !important;
+  text-decoration: underline !important;
+  overflow-wrap: anywhere;
+}
+.html-content img,
+.html-content video,
+.html-content iframe {
+  display: block;
+  max-width: 100% !important;
+  height: auto !important;
+}
+.html-content table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+}
+.html-content pre,
+.html-content code {
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 /* ------------------------------------------------------ */

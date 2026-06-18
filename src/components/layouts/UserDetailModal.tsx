@@ -353,12 +353,18 @@ export function UserDetailModal({
                     <p className="font-sans text-[10px] font-semibold text-outline">
                       Giới thiệu công ty
                     </p>
-                    <div className="mt-1.5 rounded-lg border border-outline-variant bg-surface-container-low p-3 font-sans text-xs font-medium leading-relaxed text-on-surface">
-                      {user.company?.description ? (
-                        <p className="whitespace-pre-line">
-                          {user.company.description}
-                        </p>
-                      ) : (
+                    <div className="rounded-lg border border-outline-variant bg-surface-container-low p-4 font-sans text-xs font-medium leading-relaxed text-on-surface">
+                      {user.company?.description && (
+                        <div className="min-w-0 overflow-hidden">
+                          <div
+                            className="html-content ql-editor min-w-0 max-w-full"
+                            dangerouslySetInnerHTML={{
+                              __html: user.company.description.replace(/&nbsp;/g, " "),
+                            }}
+                          />
+                        </div>
+                      )}
+                      {!user.company?.description && (
                         <p className="italic text-outline">
                           Chưa cập nhật thông tin giới thiệu công ty.
                         </p>
@@ -385,7 +391,6 @@ export function UserDetailModal({
                     </p>
                     <div className="mt-1.5 rounded-lg border border-outline-variant bg-surface-container-low p-3 font-sans text-xs font-medium leading-relaxed text-on-surface">
                       <p className="flex gap-1.5">
-                        <FileText className="h-4 w-4 shrink-0 text-on-surface-variant" />
                         {user.profile?.bio ? (
                           <span className="whitespace-pre-line">
                             {user.profile.bio}

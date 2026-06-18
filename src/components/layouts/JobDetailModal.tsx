@@ -324,10 +324,12 @@ export function JobDetailModal({ isOpen, onClose, slug }: JobDetailModalProps) {
                   Mô tả công việc chi tiết
                 </h4>
                 <div className="rounded-lg border border-outline-variant bg-surface-container-low p-4 font-sans text-xs font-medium leading-relaxed text-on-surface">
-                  <div className="flex gap-1.5">
+                  <div className="min-w-0 overflow-hidden">
                     <div
-                      className="flex-1 html-content"
-                      dangerouslySetInnerHTML={{ __html: job.description }}
+                      className="html-content min-w-0 max-w-full"
+                      dangerouslySetInnerHTML={{
+                        __html: (job.description ?? "").replace(/&nbsp;/g, " "),
+                      }}
                     />
                   </div>
                 </div>
