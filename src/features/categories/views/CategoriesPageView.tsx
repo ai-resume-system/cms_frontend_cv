@@ -431,8 +431,8 @@ export function CategoriesPageView() {
 
   const handleInlineDeleteSkill = (skillId: string) => {
     openConfirmModal(
-      "Xác nhận xóa chuyên môn/kỹ năng",
-      "Bạn có chắc chắn muốn xóa chuyên môn hoặc vị trí chuyên môn này không?",
+      "Xác nhận xóa nhóm kỹ năng/kỹ năng",
+      "Bạn có chắc chắn muốn xóa nhóm kỹ năng hoặc kỹ năng này không?",
       async () => {
         if (!selectedCategory) return;
         try {
@@ -454,8 +454,8 @@ export function CategoriesPageView() {
 
   const handleInlineRestoreSkill = (skillId: string) => {
     openConfirmModal(
-      "Xác nhận khôi phục chuyên môn/kỹ năng",
-      "Bạn có chắc chắn muốn khôi phục chuyên môn hoặc vị trí chuyên môn này không?",
+      "Xác nhận khôi phục nhóm kỹ năng/kỹ năng",
+      "Bạn có chắc chắn muốn khôi phục nhóm kỹ năng hoặc kỹ năng này không?",
       async () => {
         if (!selectedCategory) return;
         try {
@@ -729,7 +729,7 @@ export function CategoriesPageView() {
           columns={columns}
           data={filteredCategories}
           isLoading={isLoading}
-          emptyMessage="Chưa có danh mục ngành nghề nào."
+          emptyMessage="Chưa có lĩnh vực nghề nghiệp nào."
           minWidth="min-w-[640px]"
         />
 
@@ -769,7 +769,7 @@ export function CategoriesPageView() {
           <div className="relative w-full max-w-md overflow-hidden rounded-xl border border-outline-variant bg-surface-container-lowest shadow-xl animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between border-b border-outline-variant bg-surface-container-low px-4 py-3 sm:px-6 sm:py-4">
               <h3 className="font-headline text-md font-bold text-on-surface">
-                {editingCategory ? "Chỉnh sửa danh mục" : "Thêm danh mục mới"}
+                {editingCategory ? "Chỉnh sửa lĩnh vực" : "Thêm lĩnh vực mới"}
               </h3>
               <button
                 onClick={handleCloseModal}
@@ -788,7 +788,7 @@ export function CategoriesPageView() {
                   className="font-sans text-xs font-bold text-on-surface-variant"
                   htmlFor="modal-name"
                 >
-                  Tên danh mục <span className="text-error">*</span>
+                  Tên lĩnh vực <span className="text-error">*</span>
                 </label>
                 <input
                   id="modal-name"
@@ -796,7 +796,7 @@ export function CategoriesPageView() {
                   value={formData.name}
                   onChange={handleInputChange}
                   className="w-full rounded-lg border border-outline-variant bg-transparent px-4 py-2.5 font-sans text-xs outline-none transition-all focus:border-primary focus:ring-1 focus:ring-primary"
-                  placeholder="Nhập tên ngành nghề (VD: Công nghệ thông tin)"
+                  placeholder="Nhập tên lĩnh vực (VD: Công nghệ thông tin)"
                   required
                 />
               </div>
@@ -815,7 +815,7 @@ export function CategoriesPageView() {
                   onChange={handleInputChange}
                   rows={3}
                   className="w-full resize-none rounded-lg border border-outline-variant bg-transparent px-4 py-2.5 font-sans text-xs outline-none transition-all focus:border-primary focus:ring-1 focus:ring-primary"
-                  placeholder="Nhập mô tả tóm tắt cho ngành nghề này..."
+                  placeholder="Nhập mô tả tóm tắt cho lĩnh vực này..."
                 />
               </div>
 
@@ -837,7 +837,7 @@ export function CategoriesPageView() {
                     Hiển thị hệ thống
                   </option>
                   <option value={ECareerCategoriesStatus.INACTIVE}>
-                    Tạm ẩn danh mục
+                    Tạm ẩn lĩnh vực
                   </option>
                 </select>
               </div>
@@ -881,10 +881,10 @@ export function CategoriesPageView() {
                 </div>
                 <div>
                   <h3 className="font-headline text-base font-extrabold text-on-surface">
-                    Quản lý chuyên môn & vị trí chuyên ngành
+                    Quản lý nhóm kỹ năng & kỹ năng
                   </h3>
                   <p className="font-sans text-xs text-on-surface-variant font-medium">
-                    Ngành nghề:{" "}
+                    Lĩnh vực nghề nghiệp:{" "}
                     <span className="font-bold text-primary">
                       {selectedCategory.name}
                     </span>
@@ -904,7 +904,7 @@ export function CategoriesPageView() {
               <div className="p-5 flex flex-col gap-4 bg-surface-container-low/20 overflow-hidden h-full">
                 <div className="flex flex-col gap-2.5 shrink-0">
                   <h4 className="font-headline text-xs font-bold text-primary uppercase tracking-wider">
-                    Chuyên ngành
+                    Nhóm kỹ năng
                   </h4>
 
                   {/* Tìm kiếm nhóm */}
@@ -914,7 +914,7 @@ export function CategoriesPageView() {
                       value={parentSearch}
                       onChange={(e) => setParentSearch(e.target.value)}
                       className="w-full rounded-lg border border-outline-variant bg-white pl-9 pr-3 py-1.5 font-sans text-xs outline-none focus:border-primary transition-colors placeholder:text-outline"
-                      placeholder="Tìm chuyên ngành..."
+                      placeholder="Tìm nhóm kỹ năng..."
                       type="text"
                     />
                   </div>
@@ -925,7 +925,7 @@ export function CategoriesPageView() {
                       value={newParentName}
                       onChange={(e) => setNewParentName(e.target.value)}
                       className="flex-1 rounded-lg border border-outline-variant bg-white px-3 py-1.5 font-sans text-xs outline-none focus:border-primary transition-colors"
-                      placeholder="Tên chuyên ngành mới (VD: Frontend)..."
+                      placeholder="Tên nhóm kỹ năng mới (VD: Frontend)..."
                       type="text"
                       required
                     />
@@ -933,7 +933,7 @@ export function CategoriesPageView() {
                       type="submit"
                       disabled={skillSubmitLoading}
                       className="flex items-center justify-center rounded-lg bg-primary hover:bg-primary-container text-white px-3.5 py-1.5 transition-colors cursor-pointer shrink-0"
-                      title="Thêm chuyên ngành"
+                      title="Thêm nhóm kỹ năng chuyên môn"
                     >
                       {skillSubmitLoading ? (
                         <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -964,7 +964,7 @@ export function CategoriesPageView() {
                       if (parentSkills.length === 0) {
                         return (
                           <div className="py-12 text-center text-on-surface-variant text-xs border border-dashed border-outline-variant/60 rounded-xl bg-white/50">
-                            Chưa có chuyên ngành nào.
+                            Chưa có nhóm kỹ năng nào.
                           </div>
                         );
                       }
@@ -1060,7 +1060,7 @@ export function CategoriesPageView() {
                                           handleStartInlineEdit(parent)
                                         }
                                         className="p-1 rounded-lg text-primary hover:bg-primary/10 cursor-pointer"
-                                        title="Sửa tên chuyên ngành"
+                                        title="Sửa tên nhóm kỹ năng"
                                       >
                                         <Edit className="h-3.5 w-3.5" />
                                       </button>
@@ -1071,7 +1071,7 @@ export function CategoriesPageView() {
                                           )
                                         }
                                         className="p-1 rounded-lg text-error hover:bg-error/10 cursor-pointer"
-                                        title="Xóa chuyên ngành"
+                                        title="Xóa nhóm kỹ năng"
                                       >
                                         <Trash2 className="h-3.5 w-3.5" />
                                       </button>
@@ -1082,7 +1082,7 @@ export function CategoriesPageView() {
                                         void handleInlineRestoreSkill(parent.id)
                                       }
                                       className="p-1 rounded-lg text-green-600 hover:bg-green-50 cursor-pointer animate-in fade-in duration-200"
-                                      title="Khôi phục chuyên ngành"
+                                      title="Khôi phục nhóm kỹ năng"
                                     >
                                       <RefreshCw className="h-3.5 w-3.5" />
                                     </button>
@@ -1106,11 +1106,11 @@ export function CategoriesPageView() {
                       <FolderOpen className="h-10 w-10" />
                     </div>
                     <p className="font-sans text-xs font-bold text-slate-500">
-                      Chưa chọn chuyên ngành
+                      Chưa chọn nhóm kỹ năng
                     </p>
                     <p className="font-sans text-[10px] max-w-55 leading-relaxed">
-                      Vui lòng chọn một Chuyên ngành ở cột bên trái để quản lý
-                      danh sách vị trí chuyên môn.
+                      Vui lòng chọn một Nhóm kỹ năng ở cột bên trái để quản lý
+                      danh sách kỹ năng.
                     </p>
                   </div>
                 ) : (
@@ -1118,7 +1118,7 @@ export function CategoriesPageView() {
                     <div className="flex flex-col gap-2.5 shrink-0">
                       <div className="flex flex-col">
                         <span className="font-sans text-[10px] text-on-surface-variant/80 font-bold uppercase tracking-wider">
-                          Vị trí chuyên môn thuộc
+                          Kỹ năng thuộc
                         </span>
                         <h4 className="font-headline text-sm font-extrabold text-primary truncate">
                           {activeParentSkill.name}
@@ -1134,7 +1134,7 @@ export function CategoriesPageView() {
                           value={newChildName}
                           onChange={(e) => setNewChildName(e.target.value)}
                           className="flex-1 rounded-lg border border-outline-variant bg-transparent px-3 py-1.5 font-sans text-xs outline-none focus:border-primary transition-colors"
-                          placeholder={`Thêm vị trí chuyên môn cho chuyên ngành...`}
+                          placeholder={`Thêm kỹ năng cho nhóm kỹ năng...`}
                           type="text"
                           required
                         />
@@ -1142,7 +1142,7 @@ export function CategoriesPageView() {
                           type="submit"
                           disabled={skillSubmitLoading}
                           className="flex items-center justify-center rounded-lg bg-primary hover:bg-primary-container text-white px-3.5 py-1.5 transition-colors cursor-pointer shrink-0"
-                          title="Thêm vị trí chuyên môn"
+                          title="Thêm kỹ năng"
                         >
                           {skillSubmitLoading ? (
                             <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -1245,7 +1245,7 @@ export function CategoriesPageView() {
                                               handleStartInlineEdit(child)
                                             }
                                             className="p-1 rounded-lg text-primary hover:bg-primary/10 cursor-pointer"
-                                            title="Sửa vị trí chuyên môn"
+                                            title="Sửa kỹ năng"
                                           >
                                             <Edit className="h-3.5 w-3.5" />
                                           </button>
@@ -1256,7 +1256,7 @@ export function CategoriesPageView() {
                                               )
                                             }
                                             className="p-1 rounded-lg text-error hover:bg-error/10 cursor-pointer"
-                                            title="Xóa vị trí chuyên môn"
+                                            title="Xóa kỹ năng"
                                           >
                                             <Trash2 className="h-3.5 w-3.5" />
                                           </button>
@@ -1269,7 +1269,7 @@ export function CategoriesPageView() {
                                             )
                                           }
                                           className="p-1 rounded-lg text-green-600 hover:bg-green-50 cursor-pointer animate-in fade-in duration-200"
-                                          title="Khôi phục vị trí chuyên môn"
+                                          title="Khôi phục kỹ năng"
                                         >
                                           <RefreshCw className="h-3.5 w-3.5" />
                                         </button>
