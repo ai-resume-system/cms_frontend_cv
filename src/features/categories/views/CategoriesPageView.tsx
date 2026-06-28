@@ -10,6 +10,7 @@ import {
   FolderTree,
   Loader2,
   Plus,
+  RefreshCw,
   Search,
   Tag,
   Trash2,
@@ -18,6 +19,7 @@ import {
 import React, { useCallback, useEffect, useState } from "react";
 
 import { BaseTable, type TableColumn } from "@/components/ui/BaseTable";
+import { BaseModal } from "@/components/ui/BaseModal";
 import { Pagination } from "@/components/ui/Pagination";
 import {
   ECareerCategoriesStatus,
@@ -29,12 +31,14 @@ import {
   deleteCategory,
   getCategories,
   updateCategory,
+  restoreCategory,
 } from "@/services/category.service";
 import {
   createSkill,
   deleteSkill,
   getAdminSkills,
   updateSkill,
+  restoreSkill,
 } from "@/services/skill.service";
 import type { CareerCategory } from "@/types/category";
 import type { Skill } from "@/types/skill";
@@ -83,6 +87,43 @@ export function CategoriesPageView() {
   >(null);
   const [inlineEditName, setInlineEditName] = useState("");
   const [skillSubmitLoading, setSkillSubmitLoading] = useState(false);
+
+  // States cho modal xác nhận hành động
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    confirmText?: string;
+    confirmButtonClass?: string;
+    onConfirm: () => void | Promise<void>;
+  }>({
+    isOpen: false,
+    title: "",
+    message: "",
+    confirmText: "Xác nhận",
+    confirmButtonClass: "bg-primary hover:bg-primary-container text-white",
+    onConfirm: () => {},
+  });
+
+  const openConfirmModal = (
+    title: string,
+    message: string,
+    onConfirm: () => void | Promise<void>,
+    confirmText = "Xác nhận",
+    confirmButtonClass = "bg-primary hover:bg-primary-container text-white",
+  ) => {
+    setConfirmModal({
+      isOpen: true,
+      title,
+      message,
+      confirmText,
+      confirmButtonClass,
+      onConfirm: async () => {
+        await onConfirm();
+        setConfirmModal((prev) => ({ ...prev, isOpen: false }));
+      },
+    });
+  };
 
   const fetchCategories = useCallback(async () => {
     setIsLoading(true);
@@ -209,24 +250,44 @@ export function CategoriesPageView() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (
-      !window.confirm(
-        "Bạn có chắc chắn muốn xóa danh mục ngành nghề này không?",
-      )
-    ) {
-      return;
-    }
+  const handleDelete = (id: string) => {
+    openConfirmModal(
+      "Xác nhận xóa danh mục",
+      "Bạn có chắc chắn muốn xóa danh mục ngành nghề này không?",
+      async () => {
+        try {
+          await deleteCategory(id);
+          showSuccessToast("Xóa danh mục ngành nghề thành công!");
+          void fetchCategories();
+        } catch (error: unknown) {
+          const err = error as { message?: string };
+          showErrorToast(err.message || "Xóa danh mục ngành nghề thất bại!");
+        }
+      },
+      "Xác nhận xóa",
+      "bg-error hover:bg-red-600 text-white",
+    );
+  };
 
-    try {
-      await deleteCategory(id);
-      showSuccessToast("Xóa danh mục ngành nghề thành công!");
-      void fetchCategories();
-    } catch (error: unknown) {
-      const err = error as { message?: string };
-      // Hiển thị trực tiếp cảnh báo lỗi từ backend khi xóa bản ghi đang được sử dụng
-      showErrorToast(err.message || "Xóa danh mục ngành nghề thất bại!");
-    }
+  const handleRestoreCategory = (id: string) => {
+    openConfirmModal(
+      "Xác nhận khôi phục danh mục",
+      "Bạn có chắc chắn muốn khôi phục danh mục ngành nghề này không?",
+      async () => {
+        try {
+          await restoreCategory(id);
+          showSuccessToast("Khôi phục danh mục ngành nghề thành công!");
+          void fetchCategories();
+        } catch (error: unknown) {
+          const err = error as { message?: string };
+          showErrorToast(
+            err.message || "Khôi phục danh mục ngành nghề thất bại!",
+          );
+        }
+      },
+      "Khôi phục",
+      "bg-secondary hover:bg-secondary-container text-white",
+    );
   };
 
   // ─────────────────────────────────────────
@@ -368,22 +429,47 @@ export function CategoriesPageView() {
     }
   };
 
-  const handleInlineDeleteSkill = async (skillId: string) => {
-    if (!window.confirm("Bạn có chắc chắn muốn xóa kỹ năng này không?")) {
-      return;
-    }
-    if (!selectedCategory) return;
-    try {
-      await deleteSkill(skillId);
-      showSuccessToast("Xóa kỹ năng thành công!");
-      if (activeParentSkill && activeParentSkill.id === skillId) {
-        setActiveParentSkill(null);
-      }
-      void loadSkills(selectedCategory.id);
-    } catch (error: unknown) {
-      const err = error as { message?: string };
-      showErrorToast(err.message || "Xóa kỹ năng thất bại.");
-    }
+  const handleInlineDeleteSkill = (skillId: string) => {
+    openConfirmModal(
+      "Xác nhận xóa chuyên môn/kỹ năng",
+      "Bạn có chắc chắn muốn xóa chuyên môn hoặc vị trí chuyên môn này không?",
+      async () => {
+        if (!selectedCategory) return;
+        try {
+          await deleteSkill(skillId);
+          showSuccessToast("Xóa thành công!");
+          if (activeParentSkill && activeParentSkill.id === skillId) {
+            setActiveParentSkill(null);
+          }
+          void loadSkills(selectedCategory.id);
+        } catch (error: unknown) {
+          const err = error as { message?: string };
+          showErrorToast(err.message || "Xóa thất bại.");
+        }
+      },
+      "Xác nhận xóa",
+      "bg-error hover:bg-red-600 text-white",
+    );
+  };
+
+  const handleInlineRestoreSkill = (skillId: string) => {
+    openConfirmModal(
+      "Xác nhận khôi phục chuyên môn/kỹ năng",
+      "Bạn có chắc chắn muốn khôi phục chuyên môn hoặc vị trí chuyên môn này không?",
+      async () => {
+        if (!selectedCategory) return;
+        try {
+          await restoreSkill(skillId);
+          showSuccessToast("Khôi phục thành công!");
+          void loadSkills(selectedCategory.id);
+        } catch (error: unknown) {
+          const err = error as { message?: string };
+          showErrorToast(err.message || "Khôi phục thất bại.");
+        }
+      },
+      "Khôi phục",
+      "bg-secondary hover:bg-secondary-container text-white",
+    );
   };
 
   // Tính toán số liệu thống kê ở các thẻ
@@ -407,6 +493,7 @@ export function CategoriesPageView() {
     {
       key: "name",
       header: "Tên danh mục",
+      className: "w-[240px] sm:w-[280px]",
       render: (item) => (
         <span
           className={`font-bold ${item.deletedAt ? "text-on-surface-variant line-through opacity-60" : "text-on-surface"}`}
@@ -416,23 +503,14 @@ export function CategoriesPageView() {
       ),
     },
     {
-      key: "jobCount",
-      header: "Số lượng công việc",
-      align: "center",
-      render: (item) => (
-        <span className="font-bold text-on-surface-variant">
-          {item._count?.jobs || 0}
-        </span>
-      ),
-    },
-    {
       key: "status",
       header: "Trạng thái",
+      className: "w-[140px]",
       render: (item) => {
         if (item.deletedAt) {
           return (
             <span className="inline-flex items-center rounded-full border border-error/20 bg-error/10 px-2.5 py-0.5 text-[10px] font-bold text-error">
-              Đã xóa mềm
+              Đã xóa
             </span>
           );
         }
@@ -454,8 +532,9 @@ export function CategoriesPageView() {
     {
       key: "description",
       header: "Mô tả",
+      className: "w-75",
       render: (item) => (
-        <span className="text-on-surface-variant truncate block max-w-[200px] sm:max-w-[300px]">
+        <span className="text-on-surface-variant truncate block max-w-50 sm:max-w-75">
           {item.description || "Chưa có mô tả"}
         </span>
       ),
@@ -464,6 +543,7 @@ export function CategoriesPageView() {
       key: "actions",
       header: "Thao tác",
       align: "right",
+      className: "w-[160px]",
       render: (item) => (
         <div className="flex items-center justify-end gap-2">
           {/* Nút quản lý kỹ năng */}
@@ -476,7 +556,7 @@ export function CategoriesPageView() {
           </button>
 
           {/* Sửa / Xóa chỉ hiện nếu chưa bị xóa mềm */}
-          {!item.deletedAt && (
+          {!item.deletedAt ? (
             <>
               <button
                 onClick={() => handleOpenModal(item)}
@@ -493,6 +573,14 @@ export function CategoriesPageView() {
                 <Trash2 className="h-4 w-4" />
               </button>
             </>
+          ) : (
+            <button
+              onClick={() => handleRestoreCategory(item.id)}
+              className="rounded-lg border border-green-500/20 bg-green-500/5 p-2 text-green-600 transition-all active:scale-90 hover:bg-green-500/10 cursor-pointer"
+              title="Khôi phục"
+            >
+              <RefreshCw className="h-4 w-4" />
+            </button>
           )}
         </div>
       ),
@@ -569,7 +657,7 @@ export function CategoriesPageView() {
           </div>
           <div className="text-left">
             <p className="font-sans text-[10px] font-semibold uppercase tracking-wider text-on-surface-variant sm:text-xs">
-              Đã xóa mềm
+              Đã xóa
             </p>
             <p className="mt-0.5 font-headline text-lg font-extrabold text-on-surface sm:text-xl">
               {deletedCategoriesCount}
@@ -616,7 +704,7 @@ export function CategoriesPageView() {
                 { key: "all", label: "Tất cả" },
                 { key: "active", label: "Hoạt động" },
                 { key: "inactive", label: "Tạm ẩn" },
-                { key: "deleted", label: "Đã xóa mềm" },
+                { key: "deleted", label: "Đã xóa" },
               ].map((filter) => (
                 <button
                   key={filter.key}
@@ -793,7 +881,7 @@ export function CategoriesPageView() {
                 </div>
                 <div>
                   <h3 className="font-headline text-base font-extrabold text-on-surface">
-                    Quản lý kỹ năng ngành nghề
+                    Quản lý chuyên môn & vị trí chuyên ngành
                   </h3>
                   <p className="font-sans text-xs text-on-surface-variant font-medium">
                     Ngành nghề:{" "}
@@ -811,12 +899,12 @@ export function CategoriesPageView() {
               </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-outline-variant/60 h-[520px]">
+            <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-outline-variant/60 h-130">
               {/* CỘT TRÁI: NHÓM KỸ NĂNG (CHA) - Nền xám dịu nhẹ phân cấp */}
               <div className="p-5 flex flex-col gap-4 bg-surface-container-low/20 overflow-hidden h-full">
                 <div className="flex flex-col gap-2.5 shrink-0">
                   <h4 className="font-headline text-xs font-bold text-primary uppercase tracking-wider">
-                    Nhóm kỹ năng cha
+                    Chuyên ngành
                   </h4>
 
                   {/* Tìm kiếm nhóm */}
@@ -826,7 +914,7 @@ export function CategoriesPageView() {
                       value={parentSearch}
                       onChange={(e) => setParentSearch(e.target.value)}
                       className="w-full rounded-lg border border-outline-variant bg-white pl-9 pr-3 py-1.5 font-sans text-xs outline-none focus:border-primary transition-colors placeholder:text-outline"
-                      placeholder="Tìm nhóm kỹ năng..."
+                      placeholder="Tìm chuyên ngành..."
                       type="text"
                     />
                   </div>
@@ -837,7 +925,7 @@ export function CategoriesPageView() {
                       value={newParentName}
                       onChange={(e) => setNewParentName(e.target.value)}
                       className="flex-1 rounded-lg border border-outline-variant bg-white px-3 py-1.5 font-sans text-xs outline-none focus:border-primary transition-colors"
-                      placeholder="Tên nhóm mới (VD: Frontend)..."
+                      placeholder="Tên chuyên ngành mới (VD: Frontend)..."
                       type="text"
                       required
                     />
@@ -845,7 +933,7 @@ export function CategoriesPageView() {
                       type="submit"
                       disabled={skillSubmitLoading}
                       className="flex items-center justify-center rounded-lg bg-primary hover:bg-primary-container text-white px-3.5 py-1.5 transition-colors cursor-pointer shrink-0"
-                      title="Thêm nhóm"
+                      title="Thêm chuyên ngành"
                     >
                       {skillSubmitLoading ? (
                         <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -876,7 +964,7 @@ export function CategoriesPageView() {
                       if (parentSkills.length === 0) {
                         return (
                           <div className="py-12 text-center text-on-surface-variant text-xs border border-dashed border-outline-variant/60 rounded-xl bg-white/50">
-                            Chưa có nhóm kỹ năng nào.
+                            Chưa có chuyên ngành nào.
                           </div>
                         );
                       }
@@ -944,7 +1032,9 @@ export function CategoriesPageView() {
                                   <Folder
                                     className={`h-4 w-4 shrink-0 ${isActive ? "text-primary" : "text-slate-400"}`}
                                   />
-                                  <span className="text-xs truncate font-medium">
+                                  <span
+                                    className={`text-xs truncate font-medium ${parent.deletedAt ? "line-through text-slate-400 opacity-60" : ""}`}
+                                  >
                                     {parent.name}
                                   </span>
                                   <span
@@ -952,30 +1042,51 @@ export function CategoriesPageView() {
                                   >
                                     {childCount}
                                   </span>
+                                  {parent.deletedAt && (
+                                    <span className="inline-flex items-center rounded-full bg-error/10 border border-error/20 px-1.5 py-0.2 text-[8px] font-bold text-error">
+                                      Đã xóa
+                                    </span>
+                                  )}
                                 </div>
                                 {/* Chỉ hiển thị các nút thao tác khi hover vào dòng */}
                                 <div
                                   className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200"
                                   onClick={(e) => e.stopPropagation()}
                                 >
-                                  <button
-                                    onClick={() =>
-                                      handleStartInlineEdit(parent)
-                                    }
-                                    className="p-1 rounded-lg text-primary hover:bg-primary/10 cursor-pointer"
-                                    title="Sửa tên nhóm"
-                                  >
-                                    <Edit className="h-3.5 w-3.5" />
-                                  </button>
-                                  <button
-                                    onClick={() =>
-                                      void handleInlineDeleteSkill(parent.id)
-                                    }
-                                    className="p-1 rounded-lg text-error hover:bg-error/10 cursor-pointer"
-                                    title="Xóa nhóm"
-                                  >
-                                    <Trash2 className="h-3.5 w-3.5" />
-                                  </button>
+                                  {!parent.deletedAt ? (
+                                    <>
+                                      <button
+                                        onClick={() =>
+                                          handleStartInlineEdit(parent)
+                                        }
+                                        className="p-1 rounded-lg text-primary hover:bg-primary/10 cursor-pointer"
+                                        title="Sửa tên chuyên ngành"
+                                      >
+                                        <Edit className="h-3.5 w-3.5" />
+                                      </button>
+                                      <button
+                                        onClick={() =>
+                                          void handleInlineDeleteSkill(
+                                            parent.id,
+                                          )
+                                        }
+                                        className="p-1 rounded-lg text-error hover:bg-error/10 cursor-pointer"
+                                        title="Xóa chuyên ngành"
+                                      >
+                                        <Trash2 className="h-3.5 w-3.5" />
+                                      </button>
+                                    </>
+                                  ) : (
+                                    <button
+                                      onClick={() =>
+                                        void handleInlineRestoreSkill(parent.id)
+                                      }
+                                      className="p-1 rounded-lg text-green-600 hover:bg-green-50 cursor-pointer animate-in fade-in duration-200"
+                                      title="Khôi phục chuyên ngành"
+                                    >
+                                      <RefreshCw className="h-3.5 w-3.5" />
+                                    </button>
+                                  )}
                                 </div>
                               </>
                             )}
@@ -995,11 +1106,11 @@ export function CategoriesPageView() {
                       <FolderOpen className="h-10 w-10" />
                     </div>
                     <p className="font-sans text-xs font-bold text-slate-500">
-                      Chưa chọn nhóm kỹ năng
+                      Chưa chọn chuyên ngành
                     </p>
-                    <p className="font-sans text-[10px] max-w-[220px] leading-relaxed">
-                      Vui lòng chọn một Nhóm kỹ năng ở cột bên trái để quản lý
-                      danh sách kỹ năng chi tiết.
+                    <p className="font-sans text-[10px] max-w-55 leading-relaxed">
+                      Vui lòng chọn một Chuyên ngành ở cột bên trái để quản lý
+                      danh sách vị trí chuyên môn.
                     </p>
                   </div>
                 ) : (
@@ -1007,7 +1118,7 @@ export function CategoriesPageView() {
                     <div className="flex flex-col gap-2.5 shrink-0">
                       <div className="flex flex-col">
                         <span className="font-sans text-[10px] text-on-surface-variant/80 font-bold uppercase tracking-wider">
-                          Kỹ năng chi tiết thuộc
+                          Vị trí chuyên môn thuộc
                         </span>
                         <h4 className="font-headline text-sm font-extrabold text-primary truncate">
                           {activeParentSkill.name}
@@ -1023,7 +1134,7 @@ export function CategoriesPageView() {
                           value={newChildName}
                           onChange={(e) => setNewChildName(e.target.value)}
                           className="flex-1 rounded-lg border border-outline-variant bg-transparent px-3 py-1.5 font-sans text-xs outline-none focus:border-primary transition-colors"
-                          placeholder={`Thêm kỹ năng chi tiết cho nhóm...`}
+                          placeholder={`Thêm vị trí chuyên môn cho chuyên ngành...`}
                           type="text"
                           required
                         />
@@ -1031,7 +1142,7 @@ export function CategoriesPageView() {
                           type="submit"
                           disabled={skillSubmitLoading}
                           className="flex items-center justify-center rounded-lg bg-primary hover:bg-primary-container text-white px-3.5 py-1.5 transition-colors cursor-pointer shrink-0"
-                          title="Thêm kỹ năng chi tiết"
+                          title="Thêm vị trí chuyên môn"
                         >
                           {skillSubmitLoading ? (
                             <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -1059,11 +1170,11 @@ export function CategoriesPageView() {
                             return (
                               <div className="py-12 text-center text-on-surface-variant text-xs border border-dashed border-outline-variant/60 rounded-xl bg-slate-50/50 flex flex-col items-center justify-center gap-1">
                                 <span className="font-semibold text-slate-500">
-                                  Chưa có kỹ năng chi tiết.
+                                  Chưa có vị trí chuyên môn nào.
                                 </span>
                                 <span className="text-[10px] text-slate-400">
-                                  Hãy thêm mới kỹ năng đầu tiên bằng ô nhập phía
-                                  trên!
+                                  Hãy thêm mới vị trí chuyên môn đầu tiên bằng ô
+                                  nhập phía trên!
                                 </span>
                               </div>
                             );
@@ -1114,30 +1225,55 @@ export function CategoriesPageView() {
                                   <>
                                     <div className="flex items-center gap-2 min-w-0">
                                       <Tag className="h-3.5 w-3.5 shrink-0 text-slate-400" />
-                                      <span className="text-xs truncate font-medium text-slate-700">
+                                      <span
+                                        className={`text-xs truncate font-medium ${child.deletedAt ? "line-through text-slate-400 opacity-60" : "text-slate-700"}`}
+                                      >
                                         {child.name}
                                       </span>
+                                      {child.deletedAt && (
+                                        <span className="inline-flex items-center rounded-full bg-error/10 border border-error/20 px-1.5 py-0.2 text-[8px] font-bold text-error">
+                                          Đã xóa
+                                        </span>
+                                      )}
                                     </div>
                                     {/* Chỉ hiển thị các nút thao tác khi hover vào dòng */}
                                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200">
-                                      <button
-                                        onClick={() =>
-                                          handleStartInlineEdit(child)
-                                        }
-                                        className="p-1 rounded-lg text-primary hover:bg-primary/10 cursor-pointer"
-                                        title="Sửa tên kỹ năng"
-                                      >
-                                        <Edit className="h-3.5 w-3.5" />
-                                      </button>
-                                      <button
-                                        onClick={() =>
-                                          void handleInlineDeleteSkill(child.id)
-                                        }
-                                        className="p-1 rounded-lg text-error hover:bg-error/10 cursor-pointer"
-                                        title="Xóa kỹ năng"
-                                      >
-                                        <Trash2 className="h-3.5 w-3.5" />
-                                      </button>
+                                      {!child.deletedAt ? (
+                                        <>
+                                          <button
+                                            onClick={() =>
+                                              handleStartInlineEdit(child)
+                                            }
+                                            className="p-1 rounded-lg text-primary hover:bg-primary/10 cursor-pointer"
+                                            title="Sửa vị trí chuyên môn"
+                                          >
+                                            <Edit className="h-3.5 w-3.5" />
+                                          </button>
+                                          <button
+                                            onClick={() =>
+                                              void handleInlineDeleteSkill(
+                                                child.id,
+                                              )
+                                            }
+                                            className="p-1 rounded-lg text-error hover:bg-error/10 cursor-pointer"
+                                            title="Xóa vị trí chuyên môn"
+                                          >
+                                            <Trash2 className="h-3.5 w-3.5" />
+                                          </button>
+                                        </>
+                                      ) : (
+                                        <button
+                                          onClick={() =>
+                                            void handleInlineRestoreSkill(
+                                              child.id,
+                                            )
+                                          }
+                                          className="p-1 rounded-lg text-green-600 hover:bg-green-50 cursor-pointer animate-in fade-in duration-200"
+                                          title="Khôi phục vị trí chuyên môn"
+                                        >
+                                          <RefreshCw className="h-3.5 w-3.5" />
+                                        </button>
+                                      )}
                                     </div>
                                   </>
                                 )}
@@ -1154,6 +1290,42 @@ export function CategoriesPageView() {
           </div>
         </div>
       )}
+      {/* Modal xác nhận hành động */}
+      <BaseModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal((prev) => ({ ...prev, isOpen: false }))}
+        title={confirmModal.title}
+        size="sm"
+        footer={
+          <>
+            <button
+              type="button"
+              onClick={() =>
+                setConfirmModal((prev) => ({ ...prev, isOpen: false }))
+              }
+              className="rounded-lg border border-outline-variant px-4 py-2.5 font-sans text-xs font-semibold hover:bg-surface-container-low cursor-pointer"
+            >
+              Hủy bỏ
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                void confirmModal.onConfirm();
+              }}
+              className={`rounded-lg px-5 py-2.5 font-sans text-xs font-semibold cursor-pointer ${
+                confirmModal.confirmButtonClass ||
+                "bg-primary hover:bg-primary-container text-white"
+              }`}
+            >
+              {confirmModal.confirmText || "Xác nhận"}
+            </button>
+          </>
+        }
+      >
+        <p className="text-sm text-on-surface-variant font-sans font-medium text-left">
+          {confirmModal.message}
+        </p>
+      </BaseModal>
     </div>
   );
 }

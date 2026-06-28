@@ -38,6 +38,9 @@ export function UserManagementPageView() {
   const [roleFilter, setRoleFilter] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("");
 
+  const [sortField, setSortField] = useState<string>("createdAt");
+  const [sortOrder, setSortOrder] = useState<"ASC" | "DESC">("DESC");
+
   const [isLoading, setIsLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
@@ -62,6 +65,8 @@ export function UserManagementPageView() {
         search: debouncedSearch,
         role: roleFilter,
         status: statusFilter,
+        sortBy: sortField,
+        sortOrder,
       });
 
       setUsers(Array.isArray(response.data) ? response.data : []);
@@ -76,7 +81,7 @@ export function UserManagementPageView() {
     } finally {
       setIsLoading(false);
     }
-  }, [limit, page, roleFilter, debouncedSearch, statusFilter]);
+  }, [limit, page, roleFilter, debouncedSearch, statusFilter, sortField, sortOrder]);
 
   useEffect(() => {
     void fetchUsers();
@@ -94,6 +99,12 @@ export function UserManagementPageView() {
 
   const handleStatusFilterChange = (value: string) => {
     setStatusFilter(value);
+    setPage(1);
+  };
+
+  const handleSort = (field: string, order: "ASC" | "DESC") => {
+    setSortField(field);
+    setSortOrder(order);
     setPage(1);
   };
 
@@ -158,6 +169,7 @@ export function UserManagementPageView() {
     {
       key: "profile",
       header: "Người dùng",
+      className: "w-[240px] sm:w-[280px]",
       render: (item) => {
         const isRecruiter = item.role === EUserRole.RECRUITER;
 
@@ -200,11 +212,13 @@ export function UserManagementPageView() {
     {
       key: "email",
       header: "Email",
+      className: "w-[220px]",
       render: (item) => <span className="font-semibold">{item.email}</span>,
     },
     {
       key: "role",
       header: "Vai trò",
+      className: "w-[130px]",
       render: (item) => (
         <span
           className={`whitespace-nowrap rounded-full border px-2 py-1 text-[10px] font-bold sm:px-3 ${
@@ -222,6 +236,7 @@ export function UserManagementPageView() {
     {
       key: "status",
       header: "Trạng thái",
+      className: "w-[140px]",
       render: (item) => {
         const config = getStatusColorConfig(item.status);
         const label = EUserStatusLabels[item.status] || item.status;
@@ -240,9 +255,27 @@ export function UserManagementPageView() {
       },
     },
     {
+      key: "createdAt",
+      header: "Ngày tạo",
+      sortable: true,
+      className: "w-[170px]",
+      render: (item) => (
+        <span className="font-semibold text-on-surface-variant">
+          {new Date(item.createdAt).toLocaleDateString("vi-VN", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
+        </span>
+      ),
+    },
+    {
       key: "actions",
       header: "Thao tác",
       align: "right",
+      className: "w-[110px]",
       render: (item) => (
         <div className="flex justify-end gap-2">
           <button
@@ -372,6 +405,9 @@ export function UserManagementPageView() {
           isLoading={isLoading}
           emptyMessage="Không tìm thấy người dùng phù hợp."
           minWidth="min-w-[700px]"
+          sortField={sortField}
+          sortOrder={sortOrder}
+          onSort={handleSort}
         />
 
         {/* Footer Pagination */}

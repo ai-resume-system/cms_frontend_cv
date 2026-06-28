@@ -140,7 +140,8 @@ export function DashboardPageView() {
     }
   };
 
-  const getRangeLabel = (range: EAnalyticsRange) => ANALYTICS_RANGE_LABELS[range];
+  const getRangeLabel = (range: EAnalyticsRange) =>
+    ANALYTICS_RANGE_LABELS[range];
 
   const formatChartAxisLabel = (value: string) => {
     if (activeRange === EAnalyticsRange.ONE_YEAR) {
@@ -223,12 +224,12 @@ export function DashboardPageView() {
               <Briefcase className="h-5 w-5 sm:h-6 sm:w-6" />
             </div>
             <span className="text-[10px] font-bold text-green-700 bg-green-500/5 px-2 py-0.5 rounded-full">
-              Đang tuyển
+              Đang mở
             </span>
           </div>
           <div className="text-left">
             <p className="font-sans text-[10px] font-semibold uppercase tracking-wider text-on-surface-variant sm:text-xs">
-              Tin đang mở
+              Tin tuyển dụng đang mở
             </p>
             {statsLoading ? (
               <div className="mt-2">
@@ -496,7 +497,7 @@ export function DashboardPageView() {
             </h3>
           </div>
 
-          <div className="flex flex-col gap-3 overflow-y-auto max-h-[320px] pr-1">
+          <div className="flex flex-col gap-3 overflow-y-auto max-h-80 pr-1">
             {activitiesLoading ? (
               <div className="flex flex-col items-center justify-center py-16 gap-2">
                 <Loader2 className="h-6 w-6 animate-spin text-primary" />

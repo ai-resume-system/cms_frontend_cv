@@ -8,7 +8,7 @@ export enum EJobStatus {
 
 export const EJobStatusLabels: Record<EJobStatus, string> = {
   [EJobStatus.PENDING]: "Chờ duyệt",
-  [EJobStatus.OPEN]: "Đang tuyển",
+  [EJobStatus.OPEN]: "Đang mở",
   [EJobStatus.CLOSED]: "Đã đóng",
   [EJobStatus.REJECTED]: "Từ chối",
   [EJobStatus.EXPIRED]: "Hết hạn",

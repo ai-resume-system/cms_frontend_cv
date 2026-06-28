@@ -99,3 +99,11 @@ export async function deleteCategory(categoryId: string): Promise<void> {
     auth: true,
   });
 }
+
+export async function restoreCategory(categoryId: string): Promise<void> {
+  await apiService.post<void, Record<string, never>>(
+    API_ENDPOINTS.CATEGORIES.RESTORE(categoryId),
+    {},
+    { auth: true },
+  );
+}

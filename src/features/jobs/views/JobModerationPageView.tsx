@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 
 import { JobDetailModal } from "@/components/layouts/JobDetailModal";
+import { BaseModal } from "@/components/ui/BaseModal";
 import { Pagination } from "@/components/ui/Pagination";
 import { BaseTable, type TableColumn } from "@/components/ui/BaseTable";
 import { EJobStatus, EJobStatusLabels } from "@/constants/enums/job.enum";
@@ -90,9 +91,18 @@ export function JobModerationPageView() {
   const [sortOrder, setSortOrder] = useState<"ASC" | "DESC">("DESC");
 
   const [isLoading, setIsLoading] = useState(false);
+
   const [isOpenRejectModal, setIsOpenRejectModal] = useState(false);
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState("");
+
+  const [isOpenApproveModal, setIsOpenApproveModal] = useState(false);
+  const [approveJobId, setApproveJobId] = useState<string | null>(null);
+
+  const [isOpenCloseModal, setIsOpenCloseModal] = useState(false);
+  const [closeJobId, setCloseJobId] = useState<string | null>(null);
+  const [closeReason, setCloseReason] = useState("");
+
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   const [selectedJobSlug, setSelectedJobSlug] = useState<string | null>(null);
@@ -161,22 +171,27 @@ export function JobModerationPageView() {
     setPage(1);
   };
 
-  const handleApprove = async (jobId: string) => {
-    if (
-      !window.confirm("Bạn có chắc chắn muốn duyệt bài đăng tuyển dụng này?")
-    ) {
+  const handleApproveClick = (jobId: string) => {
+    setApproveJobId(jobId);
+    setIsOpenApproveModal(true);
+  };
+
+  const handleApproveConfirm = async () => {
+    if (!approveJobId) {
       return;
     }
 
-    setActionLoading(jobId);
+    setActionLoading(approveJobId);
     try {
-      await approveJob(jobId);
+      await approveJob(approveJobId);
       showSuccessToast("Duyệt tin tuyển dụng thành công!");
       setJobs((prev) =>
         prev.map((job) =>
-          job.id === jobId ? { ...job, status: EJobStatus.OPEN } : job,
+          job.id === approveJobId ? { ...job, status: EJobStatus.OPEN } : job,
         ),
       );
+      setIsOpenApproveModal(false);
+      setApproveJobId(null);
     } catch (error: unknown) {
       const err = error as { message?: string };
       showErrorToast(err.message || "Duyệt tin tuyển dụng thất bại!");
@@ -228,20 +243,35 @@ export function JobModerationPageView() {
     }
   };
 
-  const handleClose = async (jobId: string) => {
-    if (!window.confirm("Bạn có chắc chắn muốn đóng tin tuyển dụng này?")) {
+  const handleCloseClick = (jobId: string) => {
+    setCloseJobId(jobId);
+    setCloseReason("");
+    setIsOpenCloseModal(true);
+  };
+
+  const handleCloseSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!closeJobId) {
       return;
     }
 
-    setActionLoading(jobId);
+    if (!closeReason.trim()) {
+      showErrorToast("Vui lòng nhập lý do đóng tin tuyển dụng.");
+      return;
+    }
+
+    setActionLoading(closeJobId);
     try {
-      await closeJob(jobId);
+      await closeJob(closeJobId, closeReason.trim());
       showSuccessToast("Đóng tin tuyển dụng thành công!");
       setJobs((prev) =>
         prev.map((job) =>
-          job.id === jobId ? { ...job, status: EJobStatus.CLOSED } : job,
+          job.id === closeJobId ? { ...job, status: EJobStatus.CLOSED } : job,
         ),
       );
+      setIsOpenCloseModal(false);
+      setCloseJobId(null);
+      setCloseReason("");
     } catch (error: unknown) {
       const err = error as { message?: string };
       showErrorToast(err.message || "Đóng tin tuyển dụng thất bại!");
@@ -293,7 +323,7 @@ export function JobModerationPageView() {
           <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-outline-variant bg-surface-container-low sm:h-7 sm:w-7">
             <Building className="h-3.5 w-3.5 text-primary sm:h-4 sm:w-4" />
           </div>
-          <span className="max-w-[120px] truncate font-semibold text-on-surface-variant sm:max-w-none">
+          <span className="max-w-30 truncate font-semibold text-on-surface-variant sm:max-w-none">
             {item.company?.companyName || "Công ty ẩn danh"}
           </span>
         </div>
@@ -367,7 +397,7 @@ export function JobModerationPageView() {
           {item.status === EJobStatus.PENDING && (
             <div className="flex gap-1.5 sm:gap-2">
               <button
-                onClick={() => handleApprove(item.id)}
+                onClick={() => handleApproveClick(item.id)}
                 disabled={actionLoading === item.id}
                 className="flex shrink-0 items-center gap-1 rounded-lg bg-secondary px-2.5 py-1.5 text-[11px] font-bold text-white shadow-sm transition-all active:scale-95 hover:bg-secondary-container cursor-pointer sm:px-3 sm:py-2"
                 title="Duyệt đăng tin"
@@ -393,7 +423,7 @@ export function JobModerationPageView() {
 
           {item.status === EJobStatus.OPEN && (
             <button
-              onClick={() => handleClose(item.id)}
+              onClick={() => handleCloseClick(item.id)}
               disabled={actionLoading === item.id}
               className="flex shrink-0 items-center gap-1 rounded-lg border border-orange-500 bg-transparent px-2.5 py-1.5 text-[11px] font-bold text-orange-600 transition-all active:scale-95 hover:bg-orange-50 cursor-pointer sm:px-3 sm:py-2"
               title="Đóng tin tuyển dụng"
@@ -468,7 +498,7 @@ export function JobModerationPageView() {
           >
             <option value="">Tất cả trạng thái</option>
             <option value={EJobStatus.PENDING}>Chờ duyệt</option>
-            <option value={EJobStatus.OPEN}>Đang tuyển</option>
+            <option value={EJobStatus.OPEN}>Đang mở</option>
             <option value={EJobStatus.CLOSED}>Đã đóng</option>
             <option value={EJobStatus.REJECTED}>Từ chối</option>
             <option value={EJobStatus.EXPIRED}>Hết hạn</option>
@@ -520,69 +550,155 @@ export function JobModerationPageView() {
       </div>
 
       {/* Modal từ chối duyệt */}
-      {isOpenRejectModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-on-surface/40 p-3 backdrop-blur-sm sm:p-4">
-          <div className="relative w-full max-w-md overflow-hidden rounded-xl border border-outline-variant bg-surface-container-lowest shadow-xl animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between border-b border-outline-variant bg-surface-container-low px-4 py-3 sm:px-6 sm:py-4">
-              <h3 className="flex items-center gap-2 font-headline text-md font-bold text-on-surface">
-                <AlertCircle className="h-5 w-5 text-error" />
-                Từ chối tin tuyển dụng
-              </h3>
-              <button
-                onClick={handleCloseRejectModal}
-                className="rounded-lg p-1 text-on-surface-variant transition-colors hover:bg-surface-container-highest cursor-pointer"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            <form
-              onSubmit={handleRejectSubmit}
-              className="flex flex-col gap-4 p-4 text-left sm:p-6"
+      <BaseModal
+        isOpen={isOpenRejectModal}
+        onClose={handleCloseRejectModal}
+        title={
+          <span className="flex items-center gap-2">
+            <AlertCircle className="h-5 w-5 text-error" />
+            Từ chối tin tuyển dụng
+          </span>
+        }
+      >
+        <form
+          onSubmit={handleRejectSubmit}
+          className="flex flex-col gap-4 text-left"
+        >
+          <div className="flex flex-col gap-2">
+            <label
+              className="font-sans text-xs font-bold text-on-surface-variant"
+              htmlFor="reject-reason"
             >
-              <div className="flex flex-col gap-2">
-                <label
-                  className="font-sans text-xs font-bold text-on-surface-variant"
-                  htmlFor="reject-reason"
-                >
-                  Lý do từ chối bài đăng tuyển dụng này{" "}
-                  <span className="text-error">*</span>
-                </label>
-                <textarea
-                  id="reject-reason"
-                  value={rejectReason}
-                  onChange={(event) => setRejectReason(event.target.value)}
-                  rows={4}
-                  className="w-full resize-none rounded-lg border border-outline-variant bg-transparent px-4 py-2.5 font-sans text-xs outline-none transition-all focus:border-primary focus:ring-1 focus:ring-primary"
-                  placeholder="Nhập lý do chi tiết để phản hồi lại nhà tuyển dụng..."
-                  required
-                />
-              </div>
-
-              <div className="mt-4 flex justify-end gap-3 border-t border-outline-variant pt-4">
-                <button
-                  type="button"
-                  onClick={handleCloseRejectModal}
-                  className="rounded-lg border border-outline-variant px-4 py-2.5 font-sans text-xs font-semibold transition-colors hover:bg-surface-container-low cursor-pointer"
-                >
-                  Hủy bỏ
-                </button>
-                <button
-                  type="submit"
-                  disabled={actionLoading === selectedJobId}
-                  className="flex items-center gap-1.5 rounded-lg bg-error px-5 py-2.5 font-sans text-xs font-semibold text-white shadow-sm transition-all active:scale-95 hover:bg-error-container hover:text-on-error-container cursor-pointer"
-                >
-                  {actionLoading === selectedJobId ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    "Xác nhận từ chối"
-                  )}
-                </button>
-              </div>
-            </form>
+              Lý do từ chối bài đăng tuyển dụng này{" "}
+              <span className="text-error">*</span>
+            </label>
+            <textarea
+              id="reject-reason"
+              value={rejectReason}
+              onChange={(event) => setRejectReason(event.target.value)}
+              rows={4}
+              className="w-full resize-none rounded-lg border border-outline-variant bg-transparent px-4 py-2.5 font-sans text-xs outline-none transition-all focus:border-primary focus:ring-1 focus:ring-primary"
+              placeholder="Nhập lý do chi tiết để phản hồi lại nhà tuyển dụng..."
+              required
+            />
           </div>
-        </div>
-      )}
+
+          <div className="mt-4 flex justify-end gap-3 border-t border-outline-variant pt-4">
+            <button
+              type="button"
+              onClick={handleCloseRejectModal}
+              className="rounded-lg border border-outline-variant px-4 py-2.5 font-sans text-xs font-semibold transition-colors hover:bg-surface-container-low cursor-pointer"
+            >
+              Hủy bỏ
+            </button>
+            <button
+              type="submit"
+              disabled={actionLoading === selectedJobId}
+              className="flex items-center gap-1.5 rounded-lg bg-error px-5 py-2.5 font-sans text-xs font-semibold text-white shadow-sm transition-all active:scale-95 hover:bg-error-container hover:text-on-error-container cursor-pointer"
+            >
+              {actionLoading === selectedJobId ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                "Xác nhận từ chối"
+              )}
+            </button>
+          </div>
+        </form>
+      </BaseModal>
+
+      {/* Modal xác nhận duyệt tin */}
+      <BaseModal
+        isOpen={isOpenApproveModal}
+        onClose={() => setIsOpenApproveModal(false)}
+        title="Duyệt tin tuyển dụng"
+        footer={
+          <>
+            <button
+              type="button"
+              onClick={() => setIsOpenApproveModal(false)}
+              className="rounded-lg border border-outline-variant px-4 py-2.5 font-sans text-xs font-semibold transition-colors hover:bg-surface-container-low cursor-pointer"
+            >
+              Hủy bỏ
+            </button>
+            <button
+              type="button"
+              onClick={handleApproveConfirm}
+              disabled={actionLoading === approveJobId}
+              className="flex items-center gap-1.5 rounded-lg bg-secondary px-5 py-2.5 font-sans text-xs font-semibold text-white shadow-sm transition-all active:scale-95 hover:bg-secondary-container cursor-pointer"
+            >
+              {actionLoading === approveJobId ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Check className="h-4 w-4" />
+              )}
+              Xác nhận duyệt
+            </button>
+          </>
+        }
+      >
+        <p className="font-sans text-sm text-on-surface-variant text-left">
+          Bạn có chắc chắn muốn phê duyệt bài đăng tuyển dụng này? Bài đăng sẽ
+          hiển thị công khai ngay sau khi được duyệt.
+        </p>
+      </BaseModal>
+
+      {/* Modal đóng tin tuyển dụng */}
+      <BaseModal
+        isOpen={isOpenCloseModal}
+        onClose={() => setIsOpenCloseModal(false)}
+        title={
+          <span className="flex items-center gap-2">
+            <AlertCircle className="h-5 w-5 text-orange-500" />
+            Đóng tin tuyển dụng
+          </span>
+        }
+      >
+        <form
+          onSubmit={handleCloseSubmit}
+          className="flex flex-col gap-4 text-left"
+        >
+          <div className="flex flex-col gap-2">
+            <label
+              className="font-sans text-xs font-bold text-on-surface-variant"
+              htmlFor="close-reason"
+            >
+              Lý do đóng tin tuyển dụng này{" "}
+              <span className="text-error">*</span>
+            </label>
+            <textarea
+              id="close-reason"
+              value={closeReason}
+              onChange={(event) => setCloseReason(event.target.value)}
+              rows={4}
+              className="w-full resize-none rounded-lg border border-outline-variant bg-transparent px-4 py-2.5 font-sans text-xs outline-none transition-all focus:border-primary focus:ring-1 focus:ring-primary"
+              placeholder="Nhập lý do đóng tin tuyển dụng..."
+              required
+            />
+          </div>
+
+          <div className="mt-4 flex justify-end gap-3 border-t border-outline-variant pt-4">
+            <button
+              type="button"
+              onClick={() => setIsOpenCloseModal(false)}
+              className="rounded-lg border border-outline-variant px-4 py-2.5 font-sans text-xs font-semibold transition-colors hover:bg-surface-container-low cursor-pointer"
+            >
+              Hủy bỏ
+            </button>
+            <button
+              type="submit"
+              disabled={actionLoading === closeJobId}
+              className="flex items-center gap-1.5 rounded-lg bg-orange-500 px-5 py-2.5 font-sans text-xs font-semibold text-white shadow-sm transition-all active:scale-95 hover:bg-orange-600 cursor-pointer"
+            >
+              {actionLoading === closeJobId ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                "Xác nhận đóng tin"
+              )}
+            </button>
+          </div>
+        </form>
+      </BaseModal>
+
       {/* Modal chi tiết công việc */}
       <JobDetailModal
         isOpen={detailModalOpen}

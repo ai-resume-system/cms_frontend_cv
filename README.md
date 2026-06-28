@@ -1,36 +1,120 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CMS Frontend CV - Trang Quản Trị
 
-## Getting Started
+`cms_frontend_cv` là giao diện quản trị cho hệ thống AI Resume System. Source này phục vụ admin quản lý dữ liệu nền tảng, duyệt tin tuyển dụng và theo dõi thống kê hệ thống.
 
-First, run the development server:
+## Liên Kết Source
+
+Khi chạy hoặc kiểm tra từng phần của hệ thống, mở đúng source tương ứng:
+
+- Backend API: [ai-resume-system/backend_cv](https://github.com/ai-resume-system/backend_cv)
+- Frontend cho nhà tuyển dụng và người tìm việc: [ai-resume-system/frontend_cv](https://github.com/ai-resume-system/frontend_cv)
+- Frontend quản trị admin: [ai-resume-system/cms_frontend_cv](https://github.com/ai-resume-system/cms_frontend_cv)
+
+## Mục Tiêu
+
+- Quản lý danh sách người dùng và trạng thái tài khoản.
+- Quản lý danh mục nghề nghiệp.
+- Quản lý kỹ năng hệ thống.
+- Quản lý, duyệt, từ chối hoặc đóng tin tuyển dụng.
+- Xem dashboard thống kê người dùng, tin tuyển dụng, lượt ứng tuyển và hoạt động gần đây.
+- Cung cấp giao diện quản trị tách biệt với frontend người dùng.
+
+## Kiến Trúc Hiện Tại
+
+CMS dùng Next.js App Router và tổ chức theo hướng feature-based:
+
+- `src/app`: route và layout dashboard.
+- `src/features`: các module UI theo nghiệp vụ như users, categories, jobs, skills, analytics.
+- `src/services`: service gọi API backend.
+- `src/constants`: route, API endpoint và enum.
+- `src/lib`: config môi trường, helper và tiện ích dùng chung.
+
+Luồng gọi API:
+
+```txt
+Dashboard Page -> Feature View -> Service -> backend_cv /api/v1/admin
+```
+
+## Công Nghệ Sử Dụng
+
+- Next.js 16
+- React 19
+- TypeScript
+- Tailwind CSS
+- React Hook Form
+- Zod
+- Zustand
+- Recharts
+- Lucide React
+- React Toastify
+- SweetAlert2
+
+## Yêu Cầu Cài Đặt
+
+- Node.js 20+ khuyến nghị
+- npm
+- Backend `backend_cv` đang chạy
+- Tài khoản admin trong database
+
+## Cấu Hình Môi Trường
+
+Tạo file `.env` từ `.env.example`:
+
+```bash
+cp .env.example .env
+```
+
+Biến quan trọng:
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:3000/api
+NEXT_PUBLIC_APP_NODE_ENV=development
+```
+
+Lưu ý:
+
+- `NEXT_PUBLIC_API_URL` nên trỏ tới backend và bao gồm `/api`.
+- Các API admin có dạng `/api/v1/admin/...`.
+- Nếu backend chạy port khác, cập nhật lại biến này.
+
+## Cài Dependency
+
+```bash
+cd cms_frontend_cv
+npm install
+```
+
+## Chạy Development
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+CMS chạy mặc định ở:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```txt
+http://localhost:3001
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Lệnh Hữu Ích
 
-## Learn More
+```bash
+npm run build
+npm run start
+npm run lint
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Luồng Chạy Với Toàn Hệ Thống
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. Chạy hạ tầng PostgreSQL, Redis, MinIO.
+2. Chạy `backend_cv`.
+3. Đảm bảo đã có tài khoản admin hoặc seed dữ liệu.
+4. Chạy `cms_frontend_cv`.
+5. Mở `http://localhost:3001`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Ghi Chú Vận Hành
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Nếu CMS không đăng nhập được, kiểm tra tài khoản admin và endpoint auth admin.
+- Nếu bảng dữ liệu trống, kiểm tra seed hoặc dữ liệu trong PostgreSQL.
+- Nếu dashboard không có số liệu, kiểm tra API admin analytics trong backend.
+- Nếu lỗi CORS, kiểm tra `CORS_ALLOWED_ORIGINS` trong backend.

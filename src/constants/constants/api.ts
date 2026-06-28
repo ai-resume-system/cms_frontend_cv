@@ -21,6 +21,7 @@ export const API_ENDPOINTS = {
     CREATE: `${API_PREFIX}/admin/career-categories`,
     UPDATE: (id: string) => `${API_PREFIX}/admin/career-categories/${id}`,
     DELETE: (id: string) => `${API_PREFIX}/admin/career-categories/${id}`,
+    RESTORE: (id: string) => `${API_PREFIX}/admin/career-categories/${id}/restore`,
   },
   JOBS: {
     LIST_ADMIN: `${API_PREFIX}/admin/jobs`,
@@ -41,5 +42,6 @@ export const API_ENDPOINTS = {
     CREATE: `${API_PREFIX}/admin/skills`,
     UPDATE: (id: string) => `${API_PREFIX}/admin/skills/${id}`,
     DELETE: (id: string) => `${API_PREFIX}/admin/skills/${id}`,
+    RESTORE: (id: string) => `${API_PREFIX}/admin/skills/${id}/restore`,
   },
 } as const;

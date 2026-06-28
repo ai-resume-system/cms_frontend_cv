@@ -153,10 +153,10 @@ export async function rejectJob(
   );
 }
 
-export async function closeJob(jobId: string): Promise<void> {
-  await apiService.patch<void, Record<string, never>>(
+export async function closeJob(jobId: string, closeReason: string): Promise<void> {
+  await apiService.patch<void, { closeReason: string }>(
     API_ENDPOINTS.JOBS.CLOSE(jobId),
-    {},
+    { closeReason },
     { auth: true },
   );
 }

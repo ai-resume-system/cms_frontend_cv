@@ -39,7 +39,7 @@ export function AdminLoginPageView() {
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-surface p-margin-mobile font-sans text-on-surface md:p-margin-desktop">
       <div className="fixed left-0 top-0 z-50 h-1.5 w-full bg-linear-to-r from-primary via-primary-container to-primary" />
 
-      <main className="relative z-10 flex w-full max-w-[440px] flex-col items-center gap-stack-lg">
+      <main className="relative z-10 flex w-full max-w-110 flex-col items-center gap-stack-lg">
         <div className="mb-3 flex flex-col items-center gap-2 text-center">
           <div className="mb-2 flex h-16 w-16 items-center justify-center rounded-xl bg-primary shadow-sm transition-transform duration-300 hover:scale-105">
             <Shield className="h-8 w-8 text-white" />
@@ -49,7 +49,7 @@ export function AdminLoginPageView() {
             {INFOMATION_COMPANY.COMPANY_NAME} CMS
           </h1>
 
-          <p className="max-w-[300px] font-sans text-body-md text-on-surface-variant">
+          <p className="max-w-75 font-sans text-body-md text-on-surface-variant">
             Hệ thống quản trị của hệ sinh thái FUSE
           </p>
         </div>

@@ -62,9 +62,9 @@ export default function Sidebar() {
       />
 
       <aside
-        className={`fixed left-0 top-0 z-50 flex h-screen w-[280px] -translate-x-full flex-col gap-4 overflow-y-auto border-r border-outline-variant bg-surface-container-highest py-4 transition-all duration-300 ${
+        className={`fixed left-0 top-0 z-50 flex h-screen w-70 -translate-x-full flex-col gap-4 overflow-y-auto border-r border-outline-variant bg-surface-container-highest py-4 transition-all duration-300 ${
           !isCollapsed ? "translate-x-0" : ""
-        } lg:translate-x-0 ${isCollapsed ? "lg:w-[72px]" : "lg:w-64"}`}
+        } lg:translate-x-0 ${isCollapsed ? "lg:w-18" : "lg:w-64"}`}
       >
         <div
           className={`mb-2 flex items-center justify-between border-b border-outline-variant pb-2 ${

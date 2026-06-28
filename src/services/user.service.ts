@@ -10,6 +10,8 @@ interface GetUsersParams {
   search?: string;
   role?: string;
   status?: string;
+  sortBy?: string;
+  sortOrder?: "ASC" | "DESC";
 }
 
 interface UpdateUserStatusPayload {
@@ -34,6 +36,14 @@ export async function getUsers(
 
   if (params.status) {
     queryParams.set("status", params.status);
+  }
+
+  if (params.sortBy) {
+    queryParams.set("sortBy", params.sortBy);
+  }
+
+  if (params.sortOrder) {
+    queryParams.set("sortOrder", params.sortOrder);
   }
 
   const response = await apiService.get<ApiListResult<User> | User[]>(

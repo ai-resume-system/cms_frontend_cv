@@ -61,7 +61,7 @@ export default function DashboardLayout({
       <Sidebar />
       <div
         className={`flex min-h-screen flex-col pl-0 transition-all duration-300 ${
-          isCollapsed ? "lg:pl-[72px]" : "lg:pl-64"
+          isCollapsed ? "lg:pl-18" : "lg:pl-64"
         }`}
       >
         <Header />
