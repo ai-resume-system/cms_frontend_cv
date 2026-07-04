@@ -769,7 +769,7 @@ export function CategoriesPageView() {
           <div className="relative w-full max-w-md overflow-hidden rounded-xl border border-outline-variant bg-surface-container-lowest shadow-xl animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between border-b border-outline-variant bg-surface-container-low px-4 py-3 sm:px-6 sm:py-4">
               <h3 className="font-headline text-md font-bold text-on-surface">
-                {editingCategory ? "Chỉnh sửa lĩnh vực" : "Thêm lĩnh vực mới"}
+                {editingCategory ? "Chỉnh sửa lĩnh vực" : "Thêm danh mục mới"}
               </h3>
               <button
                 onClick={handleCloseModal}
@@ -819,28 +819,30 @@ export function CategoriesPageView() {
                 />
               </div>
 
-              <div className="flex flex-col gap-1.5">
-                <label
-                  className="font-sans text-xs font-bold text-on-surface-variant"
-                  htmlFor="modal-status"
-                >
-                  Trạng thái hiển thị
-                </label>
-                <select
-                  id="modal-status"
-                  name="status"
-                  value={formData.status}
-                  onChange={handleInputChange}
-                  className="w-full rounded-lg border border-outline-variant bg-transparent px-4 py-2.5 font-sans text-xs font-semibold outline-none transition-all focus:border-primary cursor-pointer"
-                >
-                  <option value={ECareerCategoriesStatus.ACTIVE}>
-                    Hiển thị hệ thống
-                  </option>
-                  <option value={ECareerCategoriesStatus.INACTIVE}>
-                    Tạm ẩn lĩnh vực
-                  </option>
-                </select>
-              </div>
+              {editingCategory && (
+                <div className="flex flex-col gap-1.5">
+                  <label
+                    className="font-sans text-xs font-bold text-on-surface-variant"
+                    htmlFor="modal-status"
+                  >
+                    Trạng thái hiển thị
+                  </label>
+                  <select
+                    id="modal-status"
+                    name="status"
+                    value={formData.status}
+                    onChange={handleInputChange}
+                    className="w-full rounded-lg border border-outline-variant bg-transparent px-4 py-2.5 font-sans text-xs font-semibold outline-none transition-all focus:border-primary cursor-pointer"
+                  >
+                    <option value={ECareerCategoriesStatus.ACTIVE}>
+                      Hiển thị hệ thống
+                    </option>
+                    <option value={ECareerCategoriesStatus.INACTIVE}>
+                      Tạm ẩn lĩnh vực
+                    </option>
+                  </select>
+                </div>
+              )}
 
               <div className="mt-4 flex justify-end gap-3 border-t border-outline-variant pt-4">
                 <button
