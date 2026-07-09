@@ -1,3 +1,5 @@
+name: ai_resume_local
+
 services:
   cms_frontend_cv:
     build:
